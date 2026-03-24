@@ -92,3 +92,11 @@ En mode concis :
 ctest => one test successful
 .\bin\Debug\NomCool.exe => UI shows
 ```
+
+
+## Consignes 
+
+L'objectif est d'améliorer le projet existant en respectant les bonnes pratiques de POO vue en cours. On a la possibilité d'ajouter autant de features que l'on veut tant que les bonnes pratiques sont respectées. La notation se basera nottament sur la qualité du code, la maintenabilité, la testabilité et la documentation.
+Pour ce faire il faudra documenté notre code au fur et à mesure de son écriture. La seul feature obligatoire est d'implémenter un système de récompense pour le joueur. Par exemple, à chaque fois que le joueur appuie sur un bouton, il gagne des points et peut les dépenser pour acheter des items dans une boutique. Les items peuvent être des skins pour le personnage, des boosts de points, etc. 
+
+**Deadline : Mai**
