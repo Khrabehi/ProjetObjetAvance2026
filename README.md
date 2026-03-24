@@ -1,102 +1,72 @@
-# Project2024
+# Project2026
 
-## Setup
+## Objectif du projet
 
-### QT
-* Télécharger Qt depuis https://www.qt.io/download-qt-installer-oss?utm_referrer=https%3A%2F%2Fwww.qt.io%2Fdownload-open-source
-* Installer Qt avec :
-  * Installation personnalisé pour pouvoir choisir la suite.
-  * Choisir une version de Qt et les binaires qui vont avec.
+Le projet va traiter de la création d'une application pour travailler son calcul mental implémenté en C++ et en utilisant l'orienté objet.
+Dans l'exemple fournit, il s'agit de tester l'utilisateur sur sa capacité à réaliser des multiplications.
 
-    ![choix de l'installation qt](./readme_ressources/choix_qt.png)
+## Rendus
 
-    * Je choisis MinGW par simplicité.
-      Si vous avez Visual Studio (pas Code, le Visual Studio payant), vous pouvez prendre ces binaires.
-    * Je choisis les Sources et les info' de Debug pour faciliter le deboguage.
-    * J'ai choisi Qt Quick Timeline par erreur sur cette image. Il ne sert à rien pour nous.
-  * Choisir les outils : cmake et MinGW à minima :
+Beaucoup d'informations sur le travail réalisé pourront être proposées soit à travers des commentaires directement dans le code, soit à travers un document (README ou autre) intégré au dépôt.
 
-    ![choix des outils](./readme_ressources/tools.png)
+Mais dans tous les cas, je souhaite disposer d'un README pour m'indiquer :
+* Comment compiler votre code.
+* Comment exécuter votre code.
+* Quelles sont les différentes fonctionnalités implémentées.
+* Où trouver les différents composants de votre code.
 
-    * J'ai choisi Qt Creator et son module de debug au cas où je souhaite utiliser cet IDE.
-    * J'ai choisi les outils de debug pour permettre un debogage plus facile.
-    * J'ai choisi MinGW pour disposer de la console pré-configurée.
-    * J'ai choisi CMake pour ne pas avoir à le configurer par ailleurs et l'avoir dans la console pré-configurée.
-    * J'ai choisi Ninja pour l'avoir à dispo' (mais je n'ai pas réussi à le faire fonctionner).
+Pour rappel, il n'y a aucune obligation d'inclure dans le projet un maximum de design patterns.
+Si vous souhaitez en utiliser car cela vous semble pertinent, c'est très bien. Mais ce n'est pas une obligation et l'utilisation à mauvais escient d'un design pattern simplement pour utiliser un design pattern sera pénalisante.
 
-En cas d'erreur ou de modification à réaliser, Qt Maintenance Tool permet de reprendre l'installation :
+### Fonctionnalités
 
-![Qt Maintenance Tool](./readme_ressources/qt_maintenance_tool.png)
+L'application doit pouvoir de base proposer des questions de calcul mental à l'utilisateur et lui permettre d'y répondre. Il s'agit de la fonctionnalité de base du programme.
 
-## Configuration
-Une fois l'installation réalisée, une console pré-configurée doit être disponible :
+Autour de ça, vous devez rajouter trois fonctionnalités supplémentaires au choix.
+On peut imaginer par exemple :
+- gestion de niveau de difficulté,
+- gestion d'une série de questions chronométrées,
+- gestion d'un historique des questions posées et des réponses données,
+- sérialisation/désérialisation des questions et réponses vues,
+- etc.
 
-![Qt console](./readme_ressources/console.png)
+En plus de ces fonctionnalités, vous devez implémenter :
+- La gestion d'une mascotte que l'on pourra choisir d'afficher ou de cacher.
+- Une fonctionnalité de votre choix liée à la gamification. Il peut s'agir par exemple :
+    - d'un système de points qui permettent de débloquer des features,
+    - d'un système de badges, de récompenses,
+    - d'un système de classement,
+    - d'un système de défis,
+    - etc.
 
-Elle permet de disposer de cmake, la toolchain de compilation (mingw dans mon cas) et Qt de disponible sans configuration.
+### Dépôt git
 
-Si vous ne voulez pas l'utiliser, il faut :
-* Rajouter le répertoire bin du dossier d'installation de cmake au PATH (répertoire contenant `cmake.exe`).
+Je vous demande de fournir l'historique git des commits réalisés pour ce projet.
+Dans ce cadre, j'attends à ce que cet historique soit clair et compréhensible. Il doit être possible de comprendre à travers les messages de commit ce qui a été réalisé à chaque étape du projet.
 
-  Ex : `set PATH=%PATH%;C:\Program Files\CMake\bin`
+### Architecture du projet
 
-  L'alternative est d'appeler cmake est chemin absolu : `C:\Program Files\CMake\bin\cmake` dans mon cas à la place de `cmake` dans les commandes ci-dessous.
+Il n'y a pas d'architecture imposée pour ce projet.
+Vous êtes libres de choisir l'architecture qui vous semble la plus pertinente pour réaliser ce projet.
+Pour autant il faut que celle-ci soit claire et compréhensible. Il doit être facile de comprendre comment le projet est organisé et comment les différentes composantes interagissent entre elles.
 
-* Rajouter le répertoire bin du dossier d'installation de mingw au PATH (répertoire contenant `gcc.exe`).
+### Séparation des fonctionnalités
 
-  Ex : `set PATH=%PATH%;C:\tools\Qt\Tools\mingw1120_64\bin`
+Les différentes fonctionnalités doivent être implémentées de manière séparée de façon à faciliter la maintenance et l'évolutivité du code.
+De manière générale, il faut essayer de ne laisser qu'une responsabilité à chaque composant : une classe a une responsabilité, une fonction a une responsabilité, etc.
 
-  L'alternative est de setter les variables `CMAKE_MAKE_PROGRAM` & co.
+C'est le cas entre autre de l'interface graphique. Il doit être possible de changer l'interface graphique sans avoir à changer le code métier.
 
-* Rajouter le répertoire bin du dossier d'installation de la librairie Qt (répertoire contenant `Qt6Core.dll`).
+### Qualité du code
+De manière plus générale, au delà des fonctionnalités implémentées, vous serez notés également sur la qualité du code réalisé. Il s'agit donc de faire un code plus propre que lors d'un TP classique.
+Je pense par exemple :
+* à nommer correctement ses variables et ses fonctions,
+* à gérer correctement les erreurs,
+* à limiter la duplication de code,
+* à regrouper le code dans des fonctions qui ont du sens, etc.
 
-  Ex : `set PATH=%PATH%;C:\tools\Qt\6.6.1\mingw_64\bin`
+### Explications des choix techniques
+Je souhaite que chaque composante de cette implémentation soit expliquée.
 
-  L'alternative est de setter la variable `CMAKE_PREFIX_PATH` à la configuration : `-DCMAKE_PREFIX_PATH="C:\tools\Qt\6.6.1\mingw_64\bin"`
+Il s’agit de commentaires qui expliqueraient à celui qui lit votre code pourquoi vous avez fait tel ou tel choix technique.
 
-Une fois la configuration terminée, pour compiler le projet, il est nécesaire de :
-* Créer un répertoire de build : `mkdir build_debug`.
-
-* Accèder à ce répertoire : `cd build_debug`.
-
-* Configurer le projet : `cmake -DCMAKE_BUILD_TYPE=Debug -G "MinGW Makefiles" ..`.
-
-  Dans le cas où vous n'avez pas rajouter le chemin vers l'installation MinGW et/ou Qt, c'est ici qu'il faut rajouter les paramètres de configuration.
-
-  Ex pour Qt : `cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="C:\tools\Qt\6.6.1\mingw_64\bin -G "MinGW Makefiles" ..`.
-
-* Builder le projet : `cmake --build .`.
-
-En mode concis :
-```console
-mkdir build_debug
-cd build_debug
-cmake -DCMAKE_BUILD_TYPE=Debug -G "MinGW Makefiles" ..
-cmake --build .
-```
-
-## Run
-
-Une fois le projet buildé, deux exécutables sont disponibles :
-
-* Les tests unitaires exécutable via `ctest` ou en appelant directement l'executable `.\bin\Debug\hello_test.exe`.
-
-  Un test doit être exécuté avec succès.
-
-* L'application graphique exécutable en appelant `.\bin\Debug\NomCool.exe`.
-
-  Une fenêtre vide doit apparaitre et se fermer lors de l'appuie sur la croix.
-
-En mode concis :
-```console
-ctest => one test successful
-.\bin\Debug\NomCool.exe => UI shows
-```
-
-
-## Consignes 
-
-L'objectif est d'améliorer le projet existant en respectant les bonnes pratiques de POO vue en cours. On a la possibilité d'ajouter autant de features que l'on veut tant que les bonnes pratiques sont respectées. La notation se basera nottament sur la qualité du code, la maintenabilité, la testabilité et la documentation.
-Pour ce faire il faudra documenté notre code au fur et à mesure de son écriture. La seul feature obligatoire est d'implémenter un système de récompense pour le joueur. Par exemple, à chaque fois que le joueur appuie sur un bouton, il gagne des points et peut les dépenser pour acheter des items dans une boutique. Les items peuvent être des skins pour le personnage, des boosts de points, etc. 
-
-**Deadline : Mai**
