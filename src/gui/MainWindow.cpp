@@ -11,11 +11,7 @@
 
 #include <stdexcept>
 
-// Debug
 #include <QPushButton>
-#include <random>
-// End debug
-
 namespace NomCool::gui
 {
 
