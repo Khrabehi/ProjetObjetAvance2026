@@ -30,11 +30,14 @@ namespace NomCool::gui
 
     mMainLayout = new QGridLayout();
 
-    auto *randomQuestion = new QPushButton("Random question");
-    connect(randomQuestion, &QPushButton::clicked, this,
-            [this]
-            { setInterrogation(mQuizEngine->genererProchaineInterrogation()); });
-    mMainLayout->addWidget(randomQuestion, 0, 0);
+    auto *btnDemarrer = new QPushButton("Démarrer le Quiz");
+    connect(btnDemarrer, &QPushButton::clicked, this,
+            [this, btnDemarrer]
+            {
+              setInterrogation(mQuizEngine->genererProchaineInterrogation());
+              btnDemarrer->hide(); // On cache le bouton une fois le quiz lancé
+            });
+    mMainLayout->addWidget(btnDemarrer, 0, 0);
 
     connect(this, &MainWindow::responseSelected, this,
             [this](data::Response response)
