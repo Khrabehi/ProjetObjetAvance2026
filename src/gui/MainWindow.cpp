@@ -7,8 +7,6 @@
 
 #include <data/Interrogation.hpp>
 
-#include <QVBoxLayout>
-
 #include <stdexcept>
 
 #include <QPushButton>
