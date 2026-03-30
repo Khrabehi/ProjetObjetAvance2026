@@ -12,6 +12,11 @@
 #include <string>
 #include <vector>
 
+// Forward declaration pour éviter les dépendances circulaires
+namespace NomCool::services {
+class QuizEngine; 
+}
+
 namespace NomCool::data {
 class Interrogation;
 } // namespace NomCool::data
@@ -22,7 +27,8 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  MainWindow();
+  // Explicit est utilisé pour s'assurer que le constructeur ne peut pas être utilisé pour des conversions implicites.
+  explicit MainWindow(services::QuizEngine* quizEngine);
 
   void setInterrogation(const data::Interrogation &interrogation);
   void setPreviousResult(const data::Result &result);
@@ -31,6 +37,7 @@ Q_SIGNALS:
   void responseSelected(data::Response response);
 
 private:
+  services::QuizEngine* mQuizEngine = nullptr;
   QGridLayout *mMainLayout = nullptr;
   std::pair<int, int> mInterrogationPosition;
   Interrogation *mInterrogation = nullptr;
