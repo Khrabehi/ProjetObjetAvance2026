@@ -8,8 +8,8 @@ namespace NomCool::services {
         static std::random_device randomDevice; // Générateur de nombres aléatoires pour sélectionner une question
         static std::mt19937 randomGenerator(randomDevice()); // Moteur de génération de nombres aléatoires
         constexpr int max = 10;
-        std::uniform_int_distribution<> dis(1, max + 1); // Distribution uniforme pour sélectionner une question entre 1 et max
-
+        std::uniform_int_distribution<> dis(1, max); // Distribution de 1 à 10 inclus
+        
         int premierFacteur = dis(randomGenerator);
         int deuxiemeFacteur = dis(randomGenerator);
         auto valuePlus1 = [](int valeur) {

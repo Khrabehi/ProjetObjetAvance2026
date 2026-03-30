@@ -15,6 +15,11 @@ target_sources( base
     resources/resource.qrc
 )
 
+target_sources( base
+  PRIVATE
+    services/QuizEngine.cpp
+)
+
 target_include_directories( base
   PUBLIC "." )
 
