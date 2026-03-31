@@ -1,6 +1,7 @@
 #include "QuizEngine.hpp"
 
 #include <algorithm>
+#include <random>
 
 namespace NomCool::services {
 

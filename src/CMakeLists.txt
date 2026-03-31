@@ -7,7 +7,7 @@ target_sources( base
 )
 target_sources( base
   PRIVATE
-    data/Interrogation.cpp data/Result.cpp
+    data/Interrogation.cpp data/Result.cpp data/Inventory.cpp 
 )
 
 target_sources( base
