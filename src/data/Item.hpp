@@ -43,6 +43,8 @@ namespace NomCool::data
             return false;
         }
 
+        ItemType getId() const { return mId; }
+
     protected:
         ItemType mId;
         std::string mName;

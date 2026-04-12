@@ -17,7 +17,7 @@ target_sources( base
 
 target_sources( base
   PRIVATE
-    services/QuizEngine.cpp
+    services/QuizEngine.cpp services/ItemFactory.cpp services/InventoryRepository.cpp
 )
 
 target_include_directories( base

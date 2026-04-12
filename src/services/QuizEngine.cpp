@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <random>
+#include "ItemFactory.hpp"
 
 namespace NomCool::services {
 
@@ -53,4 +54,28 @@ namespace NomCool::services {
             return data::Result(data::Result::Status::Failure, "Mauvaise réponse. La bonne réponse était : " + mDerniereBonneReponse);
         }
     }
+
+    void QuizEngine::lootItem() {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(1, 100);
+
+        if(dis(gen) <= 30) { // 30% de chance de looter un item
+            auto item = ItemFactory::createRandomItem();
+            mInventory.addItem(item->getId(), 1);
+            emit inventoryUpdated(&mInventory); // Émettre le signal pour notifier les changements d'inventaire
+        }
+    }
+
+    bool QuizEngine::useItem(data::ItemType type) {
+    if (mInventory.getItemCount(type) > 0) {
+        // Ici, on pourrait appeler item->use(), mais souvent la logique 
+        // d'utilisation impacte le QuizEngine lui-même (ex: SkipItem).
+        // On réduit le stock et on notifie.
+        mInventory.removeItem(type, 1);
+        emit inventoryUpdated(&mInventory);
+        return true;
+    }
+    return false;
+}
 }
