@@ -49,6 +49,7 @@ namespace NomCool::services {
     // Traite la réponse de l'utilisateur en la comparant à la dernière bonne réponse stockée et retourne un résultat d'évaluation
     data::Result QuizEngine::traiterReponse(const data::Response& reponse) {
         if (reponse == mDerniereBonneReponse) {
+            lootItem(); // Tente de looter un item après une bonne réponse
             return data::Result(data::Result::Status::Success, "Bonne réponse !");
         } else {
             return data::Result(data::Result::Status::Failure, "Mauvaise réponse. La bonne réponse était : " + mDerniereBonneReponse);
@@ -69,8 +70,6 @@ namespace NomCool::services {
 
     bool QuizEngine::useItem(data::ItemType type) {
     if (mInventory.getItemCount(type) > 0) {
-        // Ici, on pourrait appeler item->use(), mais souvent la logique 
-        // d'utilisation impacte le QuizEngine lui-même (ex: SkipItem).
         // On réduit le stock et on notifie.
         mInventory.removeItem(type, 1);
         emit inventoryUpdated(&mInventory);
