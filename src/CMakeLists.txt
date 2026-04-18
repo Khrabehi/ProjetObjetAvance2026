@@ -3,7 +3,7 @@ add_library( base )
 
 target_sources( base
   PRIVATE
-    gui/MainWindow.cpp gui/Interrogation.cpp gui/PreviousResult.cpp
+    gui/MainWindow.cpp gui/Interrogation.cpp gui/PreviousResult.cpp gui/InventoryWidget.cpp
 )
 target_sources( base
   PRIVATE

@@ -22,6 +22,8 @@ namespace NomCool::services
 
         bool useItem(data::ItemType type);
 
+        const data::Inventory& getInventory() const;
+
     signals:
         void inventoryUpdated(data::Inventory *inventory); // Signal émis lorsque l'inventaire est mis à jour
 

@@ -1,8 +1,10 @@
-<!DOCTYPE RCC>
 <RCC version="1.0">
-   <qresource>
-      <file>icons/ok.png</file>
-      <file>icons/ko.png</file>
-   </qresource>
-
+    <qresource>
+        <file>icons/ok.png</file>
+        <file>icons/ko.png</file>
+        <file>sprites/delete.png</file>
+        <file>sprites/hint.png</file>
+        <file>sprites/solve.png</file>
+        <file>sprites/skip.png</file>
+    </qresource>
 </RCC>

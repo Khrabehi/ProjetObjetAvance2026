@@ -1,6 +1,8 @@
 
 #include "MainWindow.hpp"
 
+#include "InventoryWidget.hpp"
+
 #include "services/QuizEngine.hpp"
 
 #include <gui/Interrogation.hpp>
@@ -24,12 +26,45 @@ namespace NomCool::gui
 
     mMainLayout = new QGridLayout();
 
+    auto *inventoryPanel = new InventoryWidget();
+    inventoryPanel->hide();
+    mMainLayout->addWidget(inventoryPanel, 0, 0, 1, 2); // Ajouté tout en haut
+
+    connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
+            inventoryPanel, &InventoryWidget::updateInventory);
+
+    // Connexion des items avec le moteur de quiz
+    connect(inventoryPanel, &InventoryWidget::itemUsed, this, [this](data::ItemType type)
+            {
+      if (mQuizEngine->useItem(type)) {
+          
+          switch (type) {
+              case data::ItemType::Skip:
+                  setInterrogation(mQuizEngine->genererProchaineInterrogation());
+                  break;
+                  
+              case data::ItemType::Hint:
+                  if (mInterrogation) mInterrogation->displayHint("Un nombre pair..."); 
+                  break;
+                  
+              case data::ItemType::Solve:
+                  setPreviousResult({data::Result::Status::Success, "Réponse révélée par l'item !"});
+                  setInterrogation(mQuizEngine->genererProchaineInterrogation());
+                  break;
+                  
+              case data::ItemType::DeleteAnswer:
+                  if (mInterrogation) mInterrogation->hideWrongAnswer();
+                  break;
+          }
+      } });
+
     auto *btnDemarrer = new QPushButton("Démarrer le Quiz");
     connect(btnDemarrer, &QPushButton::clicked, this,
-            [this, btnDemarrer]
+            [this, btnDemarrer, inventoryPanel]
             {
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
               btnDemarrer->hide(); // On cache le bouton une fois le quiz lancé
+              inventoryPanel->show();
             });
     mMainLayout->addWidget(btnDemarrer, 0, 0);
 
@@ -58,6 +93,8 @@ namespace NomCool::gui
     auto *centralWidget = new QWidget();
     centralWidget->setLayout(mMainLayout);
     setCentralWidget(centralWidget);
+
+    inventoryPanel->updateInventory(&mQuizEngine->getInventory());
   }
 
   void MainWindow::setInterrogation(const data::Interrogation &interrogation)
