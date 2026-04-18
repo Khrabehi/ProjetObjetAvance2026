@@ -6,7 +6,7 @@
 
 #include <random>
 
-namespace NomCool::services
+namespace ElCalculator::services
 {
     std::unique_ptr<data::Item> ItemFactory::createItem(data::ItemType type)
     {

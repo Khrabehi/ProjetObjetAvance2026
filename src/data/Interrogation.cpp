@@ -1,7 +1,7 @@
 
 #include "Interrogation.hpp"
 
-namespace NomCool::data {
+namespace ElCalculator::data {
 
 Interrogation::Interrogation(
     const std::string &question,
@@ -15,4 +15,4 @@ Interrogation::availableAnswers() const {
   return mProposedAnswers;
 }
 
-} // namespace NomCool::data
+} // namespace ElCalculator::data

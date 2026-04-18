@@ -4,12 +4,15 @@
 #include <QJsonArray>
 #include <QFile>
 
-namespace NomCool::services {
-    bool InventoryRepository::saveInventory(const data::Inventory &inventory, const QString &filePath) {
+namespace ElCalculator::services
+{
+    bool InventoryRepository::saveInventory(const data::Inventory &inventory, const QString &filePath)
+    {
         QJsonObject root;
         QJsonArray itemsArray;
 
-        for(auto* item : inventory.getItemsList()) {
+        for (auto *item : inventory.getItemsList())
+        {
             QJsonObject itemObj;
             itemObj["type"] = static_cast<int>(item->getId());
             itemObj["count"] = item->getCount();
@@ -19,7 +22,8 @@ namespace NomCool::services {
 
         QJsonDocument doc(root);
         QFile file(filePath);
-        if (file.open(QIODevice::WriteOnly)) {
+        if (file.open(QIODevice::WriteOnly))
+        {
             file.write(doc.toJson());
             file.close();
             return true;
@@ -27,21 +31,36 @@ namespace NomCool::services {
         return false;
     }
 
-    bool InventoryRepository::loadInventory(data::Inventory &inventory, const QString &filePath) {
+    bool InventoryRepository::loadInventory(data::Inventory &inventory, const QString &filePath)
+    {
         QFile file(filePath);
-        if(!file.open(QIODevice::ReadOnly)) {
+
+        if (!file.open(QIODevice::ReadOnly))
+        {
             return false;
         }
 
-        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-        QJsonArray itemsArray = doc.object()["items"].toArray();
+        QByteArray jsonData = file.readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData);
 
-        for (const auto &itemVal : itemsArray) {
-            QJsonObject itemObj = itemVal.toObject();
+        if (doc.isNull() || !doc.isObject())
+        {
+            return false; 
+        }
+
+        QJsonObject root = doc.object();
+        QJsonArray itemsArray = root["items"].toArray();
+
+        for (const auto &itemValue : itemsArray)
+        {
+            QJsonObject itemObj = itemValue.toObject();
+
             data::ItemType type = static_cast<data::ItemType>(itemObj["type"].toInt());
             int count = itemObj["count"].toInt();
+
             inventory.addItem(type, count);
         }
+
         return true;
     }
 }

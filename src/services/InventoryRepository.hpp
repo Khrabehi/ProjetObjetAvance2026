@@ -2,7 +2,7 @@
 
 #include "data/Inventory.hpp"
 
-namespace NomCool::services
+namespace ElCalculator::services
 {
     class InventoryRepository
     {
@@ -10,4 +10,4 @@ namespace NomCool::services
         static bool saveInventory(const data::Inventory &inventory, const QString &filePath);
         static bool loadInventory(data::Inventory &inventory, const QString &filePath);
     };
-} // namespace NomCool::services
+} // namespace ElCalculator::services

@@ -7,7 +7,7 @@
 
 #include <string>
 
-namespace NomCool::services
+namespace ElCalculator::services
 {
 
     class QuizEngine : public QObject
@@ -23,6 +23,7 @@ namespace NomCool::services
         bool useItem(data::ItemType type);
 
         const data::Inventory& getInventory() const;
+        data::Inventory& getInventory();
 
     signals:
         void inventoryUpdated(data::Inventory *inventory); // Signal émis lorsque l'inventaire est mis à jour
@@ -34,4 +35,4 @@ namespace NomCool::services
         data::Response mDerniereBonneReponse;
         data::Inventory mInventory;
     };
-} // namespace NomCool::services
+} // namespace ElCalculator::services

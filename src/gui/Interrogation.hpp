@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace NomCool::gui
+namespace ElCalculator::gui
 {
 
   class Interrogation : public QWidget
@@ -34,4 +34,4 @@ namespace NomCool::gui
     std::vector<QPushButton *> mResponseButtons;
   };
 
-} // namespace NomCool::gui
+} // namespace ElCalculator::gui

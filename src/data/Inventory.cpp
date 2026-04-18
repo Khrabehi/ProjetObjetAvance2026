@@ -5,7 +5,7 @@
 #include "items/SolveItem.hpp"
 #include "items/DeleteAnswerItem.hpp"
 
-namespace NomCool::data
+namespace ElCalculator::data
 {
     Inventory::Inventory()
     {
@@ -50,4 +50,4 @@ namespace NomCool::data
         }
         return itemList;
     }
-} // namespace NomCool::data
+} // namespace ElCalculator::data

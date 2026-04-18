@@ -4,6 +4,7 @@
 #include "InventoryWidget.hpp"
 
 #include "services/QuizEngine.hpp"
+#include "services/InventoryRepository.hpp"
 
 #include <gui/Interrogation.hpp>
 
@@ -12,7 +13,7 @@
 #include <stdexcept>
 
 #include <QPushButton>
-namespace NomCool::gui
+namespace ElCalculator::gui
 {
 
   MainWindow::MainWindow(services::QuizEngine *quizEngine)
@@ -123,4 +124,17 @@ namespace NomCool::gui
                            mPreviousResultPosition.second);
   }
 
-} // namespace NomCool::gui
+  void ElCalculator::gui::MainWindow::closeEvent(QCloseEvent *event)
+  {
+    QString saveFile = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/inventory.json";
+
+    if (mQuizEngine)
+    {
+      bool saveSuccess = services::InventoryRepository::saveInventory(
+          mQuizEngine->getInventory(), saveFile);
+    }
+
+    event->accept();
+  }
+
+} // namespace ElCalculator::gui

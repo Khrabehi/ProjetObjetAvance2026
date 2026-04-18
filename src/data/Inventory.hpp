@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 
-namespace NomCool::data
+namespace ElCalculator::data
 {
     class Inventory
     {
@@ -21,4 +21,4 @@ namespace NomCool::data
     private:
         std::map<ItemType, std::unique_ptr<Item>> mItems;
     };
-} // namespace NomCool::data
+} // namespace ElCalculator::data

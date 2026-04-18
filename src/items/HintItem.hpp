@@ -3,7 +3,7 @@
 #include "data/Item.hpp"
 #include <iostream>
 
-namespace NomCool::items
+namespace ElCalculator::items
 {
     class HintItem : public data::Item
     {
@@ -16,4 +16,4 @@ namespace NomCool::items
         std::string describe() const override { return "Affiche un calcul partiel pour vous aider."; }
         QString getIcon() const override { return mSprite; }
     };
-} // namespace NomCool::items
+} // namespace ElCalculator::items

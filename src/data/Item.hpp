@@ -3,7 +3,7 @@
 #include <QString>
 #include <string>
 
-namespace NomCool::data
+namespace ElCalculator::data
 {
     enum class ItemType
     {
@@ -51,4 +51,4 @@ namespace NomCool::data
         int mCount;
         QString mSprite;
     };
-}// namespace NomCool::data
+}// namespace ElCalculator::data

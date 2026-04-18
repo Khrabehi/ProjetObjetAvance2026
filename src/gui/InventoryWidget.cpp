@@ -2,7 +2,7 @@
 
 #include <QIcon>
 
-namespace NomCool::gui
+namespace ElCalculator::gui
 {
 
     InventoryWidget::InventoryWidget(QWidget *parent) : QWidget(parent)

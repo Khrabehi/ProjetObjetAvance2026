@@ -2,7 +2,7 @@
 #include <memory>
 #include "data/Item.hpp"
 
-namespace NomCool::services {
+namespace ElCalculator::services {
 
     class ItemFactory{
         public:

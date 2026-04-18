@@ -8,7 +8,7 @@
 #include "data/Inventory.hpp"
 #include "data/Item.hpp"
 
-namespace NomCool::gui
+namespace ElCalculator::gui
 {
     class InventoryWidget : public QWidget
     {
@@ -29,4 +29,4 @@ namespace NomCool::gui
     signals: 
         void itemUsed(data::ItemType type);
     };
-} // namespace NomCool::gui
+} // namespace ElCalculator::gui

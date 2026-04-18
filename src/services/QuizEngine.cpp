@@ -4,7 +4,7 @@
 #include <random>
 #include "ItemFactory.hpp"
 
-namespace NomCool::services
+namespace ElCalculator::services
 {
 
     /// Génère la prochaine interrogation du quiz de manière aléatoire.
@@ -68,7 +68,7 @@ namespace NomCool::services
         static std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis(1, 100);
 
-        if (dis(gen) <= 100) // DEBUG 100%
+        if (dis(gen) <= 30) // DEBUG 100%
         { // 30% de chance de looter un item
             auto item = ItemFactory::createRandomItem();
             mInventory.addItem(item->getId(), 1);
@@ -89,6 +89,11 @@ namespace NomCool::services
     }
 
     const data::Inventory &QuizEngine::getInventory() const
+    {
+        return mInventory;
+    }
+
+    data::Inventory &QuizEngine::getInventory()
     {
         return mInventory;
     }

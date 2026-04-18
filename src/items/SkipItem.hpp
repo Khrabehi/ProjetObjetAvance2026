@@ -3,7 +3,7 @@
 #include "data/Item.hpp"
 #include <iostream>
 
-namespace NomCool::items
+namespace ElCalculator::items
 {
     class SkipItem : public data::Item {
     public:
@@ -15,4 +15,4 @@ namespace NomCool::items
         std::string describe() const override { return "Change la question en cours."; }
         QString getIcon() const override { return mSprite; }
     };
-}// namespace NomCool::items
+}// namespace ElCalculator::items

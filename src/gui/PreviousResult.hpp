@@ -5,7 +5,7 @@
 
 #include <data/Result.hpp>
 
-namespace NomCool::gui {
+namespace ElCalculator::gui {
 
 class PreviousResult : public QWidget {
   Q_OBJECT
@@ -14,4 +14,4 @@ public:
   PreviousResult(const data::Result &result);
 };
 
-} // namespace NomCool::gui
+} // namespace ElCalculator::gui

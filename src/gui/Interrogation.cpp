@@ -1,6 +1,6 @@
 #include "Interrogation.hpp"
 
-namespace NomCool::gui
+namespace ElCalculator::gui
 {
 
   Interrogation::Interrogation(const data::Interrogation &data, QWidget *parent)
@@ -56,4 +56,4 @@ namespace NomCool::gui
     }
   }
 
-} // namespace NomCool::gui
+} // namespace ElCalculator::gui
