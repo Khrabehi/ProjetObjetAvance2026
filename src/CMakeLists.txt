@@ -3,11 +3,11 @@ add_library( base )
 
 target_sources( base
   PRIVATE
-    gui/MainWindow.cpp gui/Interrogation.cpp gui/PreviousResult.cpp
+    gui/MainWindow.cpp gui/Interrogation.cpp gui/PreviousResult.cpp gui/InventoryWidget.cpp
 )
 target_sources( base
   PRIVATE
-    data/Interrogation.cpp data/Result.cpp
+    data/Interrogation.cpp data/Result.cpp data/Inventory.cpp 
 )
 
 target_sources( base
@@ -17,7 +17,7 @@ target_sources( base
 
 target_sources( base
   PRIVATE
-    services/QuizEngine.cpp
+    services/QuizEngine.cpp services/ItemFactory.cpp services/InventoryRepository.cpp
 )
 
 target_include_directories( base

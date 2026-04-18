@@ -4,7 +4,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
-namespace NomCool::gui {
+namespace ElCalculator::gui {
 
 PreviousResult::PreviousResult(const data::Result &result) {
   auto *layout = new QHBoxLayout();
@@ -19,4 +19,4 @@ PreviousResult::PreviousResult(const data::Result &result) {
   setLayout(layout);
 }
 
-} // namespace NomCool::gui
+} // namespace ElCalculator::gui

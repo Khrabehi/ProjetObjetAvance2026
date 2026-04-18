@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace NomCool::data {
+namespace ElCalculator::data {
 
 class Result {
 public:
@@ -19,4 +19,4 @@ private:
   std::string mMessage;
 };
 
-} // namespace NomCool::data
+} // namespace ElCalculator::data

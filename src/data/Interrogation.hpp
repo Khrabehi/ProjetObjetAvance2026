@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-namespace NomCool::data {
+namespace ElCalculator::data {
 
 using Response = std::string;
 
@@ -25,4 +25,4 @@ private:
   std::vector<std::pair<std::string, Response>> mProposedAnswers;
 };
 
-} // namespace NomCool::data
+} // namespace ElCalculator::data
