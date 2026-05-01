@@ -3,6 +3,7 @@
 #include "data/Interrogation.hpp"
 #include "data/Result.hpp"
 #include "data/Inventory.hpp"
+#include "data/Difficulty.hpp"
 #include <QObject>
 
 #include <string>
@@ -34,5 +35,7 @@ namespace ElCalculator::services
     
         data::Response mDerniereBonneReponse;
         data::Inventory mInventory;
+        int mStreak = 0; // Compteur de bonnes réponses à la suite 
+        data::Difficulty mCurrentDifficulty = data::Difficulty::Easy; 
     };
 } // namespace ElCalculator::services

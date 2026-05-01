@@ -53,11 +53,13 @@ namespace ElCalculator::services
     {
         if (reponse == mDerniereBonneReponse)
         {
+            mStreak++;
             lootItem(); // Tente de looter un item après une bonne réponse
             return data::Result(data::Result::Status::Success, "Bonne réponse !");
         }
         else
         {
+            mStreak = 0;
             return data::Result(data::Result::Status::Failure, "Mauvaise réponse. La bonne réponse était : " + mDerniereBonneReponse);
         }
     }
