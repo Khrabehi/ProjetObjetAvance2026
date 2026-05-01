@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QDebug>
 #include <QStandardPaths>
 
 int main(int argc, char *argv[])
@@ -21,8 +22,11 @@ int main(int argc, char *argv[])
   QString saveFile = appDataPath + "/inventory.json";
 
   ElCalculator::services::QuizEngine quizEngine;
-  bool loadSuccess = ElCalculator::services::InventoryRepository::loadInventory(
-      quizEngine.getInventory(), saveFile);
+  if (!ElCalculator::services::InventoryRepository::loadInventory(
+          quizEngine.getInventory(), saveFile))
+  {
+    qWarning() << "Inventaire non charge:" << saveFile;
+  }
 
   // Injecter le service de quiz dans la fenêtre
   ElCalculator::gui::MainWindow fenetre(&quizEngine);

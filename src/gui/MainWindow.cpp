@@ -130,8 +130,11 @@ namespace ElCalculator::gui
 
     if (mQuizEngine)
     {
-      bool saveSuccess = services::InventoryRepository::saveInventory(
-          mQuizEngine->getInventory(), saveFile);
+      if (!services::InventoryRepository::saveInventory(
+              mQuizEngine->getInventory(), saveFile))
+      {
+        qWarning() << "Inventaire non sauvegarde:" << saveFile;
+      }
     }
 
     event->accept();
