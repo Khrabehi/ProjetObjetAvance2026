@@ -3,6 +3,7 @@
 #include "data/Interrogation.hpp"
 #include "data/Result.hpp"
 #include "data/Inventory.hpp"
+#include "data/Difficulty.hpp"
 #include <QObject>
 
 #include <string>
@@ -27,12 +28,16 @@ namespace ElCalculator::services
 
     signals:
         void inventoryUpdated(data::Inventory *inventory); // Signal émis lorsque l'inventaire est mis à jour
+        void difficultyChanged(data::Difficulty newDifficulty); // Signal émis lorsque la difficulté change
 
     private:
 
         void lootItem(); // Fonction qui va attribuer aléatoirement un item
-    
+        void updateDifficulty();
+
         data::Response mDerniereBonneReponse;
         data::Inventory mInventory;
+        int mStreak = 0; // Compteur de bonnes réponses à la suite 
+        data::Difficulty mCurrentDifficulty = data::Difficulty::Easy; 
     };
 } // namespace ElCalculator::services
