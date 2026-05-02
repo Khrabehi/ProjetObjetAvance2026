@@ -12,6 +12,7 @@
 
 #include <stdexcept>
 
+#include <QHBoxLayout>
 #include <QPushButton>
 namespace ElCalculator::gui
 {
