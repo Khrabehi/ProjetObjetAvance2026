@@ -26,13 +26,39 @@ namespace ElCalculator::gui
     }
 
     mMainLayout = new QGridLayout();
+    mMainLayout->setContentsMargins(16, 16, 16, 16);
+    mMainLayout->setHorizontalSpacing(12);
+    mMainLayout->setVerticalSpacing(12);
 
     auto *inventoryPanel = new InventoryWidget();
     inventoryPanel->hide();
-    mMainLayout->addWidget(inventoryPanel, 0, 0, 1, 2); // Ajouté tout en haut
 
     connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
             inventoryPanel, &InventoryWidget::updateInventory);
+
+    // Init label pour la difficulté
+    mDifficultyLabel = new QLabel("Niveau : Facile", this);
+    mDifficultyLabel->setAlignment(Qt::AlignCenter);
+    mDifficultyLabel->setStyleSheet("font-weight: bold; color: #2980b9; font-size: 14px;");
+    mDifficultyLabel->hide(); // On le cache tant que le quiz n'a pas démarré
+
+    auto *topBar = new QHBoxLayout();
+    topBar->setContentsMargins(0, 0, 0, 0);
+    topBar->setSpacing(12);
+    topBar->addWidget(inventoryPanel, 1);
+    topBar->addWidget(mDifficultyLabel, 0, Qt::AlignCenter);
+
+    connect(mQuizEngine, &services::QuizEngine::difficultyChanged,
+            this, [this](data::Difficulty newDiff)
+            {
+                QString levelText = "Niveau : ";
+                switch(newDiff) {
+                    case data::Difficulty::Easy: levelText += "Facile"; break;
+                    case data::Difficulty::Medium: levelText += "Moyen"; break;
+                    case data::Difficulty::Hard: levelText += "Difficile"; break;
+                    case data::Difficulty::Expert: levelText += "Expert"; break;
+                }
+                mDifficultyLabel->setText(levelText); });
 
     // Connexion des items avec le moteur de quiz
     connect(inventoryPanel, &InventoryWidget::itemUsed, this, [this](data::ItemType type)
@@ -66,8 +92,9 @@ namespace ElCalculator::gui
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
               btnDemarrer->hide(); // On cache le bouton une fois le quiz lancé
               inventoryPanel->show();
+              mDifficultyLabel->show();
             });
-    mMainLayout->addWidget(btnDemarrer, 0, 0);
+    topBar->addWidget(btnDemarrer, 0, Qt::AlignRight);
 
     connect(this, &MainWindow::responseSelected, this,
             [this](data::Response response)
@@ -78,6 +105,13 @@ namespace ElCalculator::gui
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
             });
 
+    // Quit button (dans la barre du haut)
+    auto *quitButton = new QPushButton("Quit");
+    connect(quitButton, &QPushButton::clicked, this, &MainWindow::close);
+    topBar->addWidget(quitButton, 0, Qt::AlignRight);
+
+    mMainLayout->addLayout(topBar, 0, 0);
+
     // This row is reserved for the previous result widget
     // The next one should be added at the mPreviousResultPosition.first + 1
     mPreviousResultPosition = {mMainLayout->rowCount(), 0};
@@ -85,11 +119,6 @@ namespace ElCalculator::gui
     // This row is reserved for the interrogation widget
     // The next one should be added at the mInterrogationPosition.first + 1
     mInterrogationPosition = {mPreviousResultPosition.first + 1, 0};
-
-    // Quit button
-    auto *quitButton = new QPushButton("Quit");
-    connect(quitButton, &QPushButton::clicked, this, &MainWindow::close);
-    mMainLayout->addWidget(quitButton, mInterrogationPosition.first + 1, 0);
 
     auto *centralWidget = new QWidget();
     centralWidget->setLayout(mMainLayout);

@@ -28,11 +28,13 @@ namespace ElCalculator::services
 
     signals:
         void inventoryUpdated(data::Inventory *inventory); // Signal émis lorsque l'inventaire est mis à jour
+        void difficultyChanged(data::Difficulty newDifficulty); // Signal émis lorsque la difficulté change
 
     private:
 
         void lootItem(); // Fonction qui va attribuer aléatoirement un item
-    
+        void updateDifficulty();
+
         data::Response mDerniereBonneReponse;
         data::Inventory mInventory;
         int mStreak = 0; // Compteur de bonnes réponses à la suite 
