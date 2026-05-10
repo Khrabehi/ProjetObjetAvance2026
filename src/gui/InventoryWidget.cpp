@@ -66,6 +66,7 @@ namespace ElCalculator::gui
 
         for(auto* item : inventory->getItemsList()) {
             auto type = item->getId();
+            // Vérifie si le bouton devient disable à cause de son stock
             if(mButtons.find(type) != mButtons.end()) {
                 int count = item->getCount();
                 mButtons[type]->setText("x" + QString::number(count));

@@ -14,6 +14,8 @@
 
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <random>
+#include <cctype>
 namespace ElCalculator::gui
 {
 
@@ -81,9 +83,31 @@ namespace ElCalculator::gui
             setInterrogation(mQuizEngine->genererProchaineInterrogation());
             break;
 
-          case data::ItemType::Hint:
-            if (mInterrogation) mInterrogation->displayHint("Un nombre pair...");
-            break;
+            case data::ItemType::Hint:
+              if (mInterrogation) {
+                const std::string ans = mQuizEngine->getDerniereBonneReponse();
+                QString hintText;
+                // Construction de l'indice : affiche un chiffre présent dans la réponse.
+                if (!ans.empty()) {
+                  std::vector<char> digits;
+                  for (char c : ans) {
+                    if (std::isdigit(static_cast<unsigned char>(c))) digits.push_back(c);
+                  }
+                  if (!digits.empty()) {
+                    static std::random_device rd;
+                    static std::mt19937 gen(rd());
+                    std::uniform_int_distribution<> dis(0, (int)digits.size() - 1);
+                    char chosen = digits[dis(gen)];
+                    hintText = QString("La réponse contient le chiffre %1").arg(QChar(chosen));
+                  } else {
+                    hintText = QString::fromStdString("Indice : commence par " + ans.substr(0,1));
+                  }
+                } else {
+                  hintText = "Indice indisponible";
+                }
+                mInterrogation->displayHint(hintText);
+              }
+              break;
 
           case data::ItemType::Solve:
             setPreviousResult({data::Result::Status::Success, "Réponse révélée par l'item !"});
