@@ -5,9 +5,12 @@
 #include "data/Inventory.hpp"
 #include "data/Difficulty.hpp"
 #include "data/GameSession.hpp"
+#include "ILifePolicy.hpp"
 #include <QObject>
 
 #include <string>
+#include <optional>
+#include <memory>
 
 namespace ElCalculator::services
 {
@@ -16,6 +19,8 @@ namespace ElCalculator::services
     {
         Q_OBJECT
     public:
+        // Constructeur explicit pour injecter la policy par défaut
+        explicit QuizEngine(std::unique_ptr<ILifePolicy> lifePolicy = nullptr, QObject *parent = nullptr);
         // Gérer le cycle de vie d'une partie
         void startNewGameSession();
         void endCurrentSession(data::GameStatus status);
@@ -44,6 +49,8 @@ namespace ElCalculator::services
         void inventoryUpdated(data::Inventory *inventory);      // Signal émis lorsque l'inventaire est mis à jour
         void difficultyChanged(data::Difficulty newDifficulty); // Signal émis lorsque la difficulté change
         void sessionEnded(data::GameSession finalResult);       // Signal émis à la fin d'une session de jeu
+        void livesChanged(int remainingLives);
+        void gameOver(data::GameSession finalResult);
 
     private:
         void lootItem(); // Fonction qui va attribuer aléatoirement un item
@@ -56,5 +63,9 @@ namespace ElCalculator::services
         std::optional<data::GameSession> mCurrentSession;
         std::optional<data::GameSession> mLastSession;
         std::vector<data::GameSession> mHistory;
+        int mLives = 0;
+        int mMaxLives = 5;
+        std::unique_ptr<ILifePolicy> mLifePolicy;
+        bool mSessionSaved = false;
     };
 } // namespace ElCalculator::services

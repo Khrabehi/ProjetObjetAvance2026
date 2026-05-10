@@ -52,11 +52,20 @@ namespace ElCalculator::gui
     mDifficultyLabel->setStyleSheet("font-weight: bold; color: #2980b9; font-size: 14px;");
     mDifficultyLabel->hide(); // On le cache tant que le quiz n'a pas démarré
 
+    mLivesLabel = new QLabel("❤️ Vies : -", this);
+    mLivesLabel->setAlignment(Qt::AlignCenter);
+    mLivesLabel->setStyleSheet("font-weight: bold; color: #e74c3c; font-size: 14px;");
+    mLivesLabel->hide(); // Caché avant le début du quiz
+
     auto *topBar = new QHBoxLayout();
     topBar->setContentsMargins(0, 0, 0, 0);
     topBar->setSpacing(12);
     topBar->addWidget(mInventoryPanel, 1);
     topBar->addWidget(mDifficultyLabel, 0, Qt::AlignCenter);
+    topBar->addWidget(mLivesLabel, 0, Qt::AlignCenter);
+
+    connect(mQuizEngine, &services::QuizEngine::livesChanged, this, [this](int lives)
+            { mLivesLabel->setText(QString("❤️ Vies : %1").arg(lives)); });
 
     connect(mQuizEngine, &services::QuizEngine::difficultyChanged,
             this, [this](data::Difficulty newDiff)
@@ -135,6 +144,7 @@ namespace ElCalculator::gui
               btnDemarrer->hide(); // On cache le bouton une fois le quiz lancé
               mInventoryPanel->show();
               mDifficultyLabel->show();
+              mLivesLabel->show();
             });
     topBar->addWidget(btnDemarrer, 0, Qt::AlignRight);
 
@@ -147,19 +157,25 @@ namespace ElCalculator::gui
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
             });
 
+    connect(mQuizEngine, &services::QuizEngine::sessionEnded, this,
+            [this, btnDemarrer](const data::GameSession & /*result*/)
+            {
+              if (mInterrogation)
+                mInterrogation->hide();
+              if (mPreviousResult)
+                mPreviousResult->hide();
+              mInventoryPanel->hide();
+              mDifficultyLabel->hide();
+              mLivesLabel->hide();
+              btnDemarrer->show();
+            });
+
     // Quit button (dans la barre du haut)
     auto *stopButton = new QPushButton("Terminer la partie");
     connect(stopButton, &QPushButton::clicked, this, [this, btnDemarrer, stopButton]
             {
               // Enregistre la fin de session
-              mQuizEngine->endCurrentSession(data::GameStatus::Abandoned);
-
-              // Reset de l'UI
-              if (mInterrogation) mInterrogation->hide();
-              if (mPreviousResult) mPreviousResult->hide();
-              mInventoryPanel->hide();
-              mDifficultyLabel->hide();
-              btnDemarrer->show(); });
+              mQuizEngine->endCurrentSession(data::GameStatus::Abandoned); });
     topBar->addWidget(stopButton, 0, Qt::AlignRight);
 
     mMainLayout->addLayout(topBar, 0, 0);

@@ -55,6 +55,7 @@ namespace ElCalculator::gui
     std::pair<int, int> mPreviousResultPosition;
     PreviousResult *mPreviousResult = nullptr;
     ScorePanel* mScorePanel = nullptr;
+    QLabel *mLivesLabel = nullptr;
 
   protected:
     void closeEvent(QCloseEvent *event) override;

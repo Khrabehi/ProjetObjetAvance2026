@@ -26,6 +26,12 @@ namespace ElCalculator::services
             obj["durationSeconds"] = session.durationSeconds;
             obj["status"] = static_cast<int>(session.finalStatus);
 
+            obj["initialLives"] = session.initialLives;
+            obj["remainingLives"] = session.remainingLives;
+            obj["livesLost"] = session.livesLost;
+            obj["livesGained"] = session.livesGained;
+            obj["endedWithoutSave"] = session.endedWithoutSave;
+
             rootArray.append(obj);
         }
 
@@ -62,6 +68,23 @@ namespace ElCalculator::services
             session.itemsUsed = obj["itemsUsed"].toInt();
             session.durationSeconds = obj["durationSeconds"].toInt();
             session.finalStatus = static_cast<data::GameStatus>(obj["status"].toInt());
+
+            if (obj.contains("initialLives"))
+            {
+                session.initialLives = obj["initialLives"].toInt();
+                session.remainingLives = obj["remainingLives"].toInt();
+                session.livesLost = obj["livesLost"].toInt();
+                session.livesGained = obj["livesGained"].toInt();
+                session.endedWithoutSave = obj["endedWithoutSave"].toBool();
+            }
+            else
+            {
+                session.initialLives = 0;
+                session.remainingLives = 0;
+                session.livesLost = 0;
+                session.livesGained = 0;
+                session.endedWithoutSave = false;
+            }
 
             history.push_back(session);
         }

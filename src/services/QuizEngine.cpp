@@ -3,9 +3,21 @@
 #include <algorithm>
 #include <random>
 #include "ItemFactory.hpp"
+#include "StreakLifePolicy.hpp"
 
 namespace ElCalculator::services
 {
+
+    QuizEngine::QuizEngine(std::unique_ptr<ILifePolicy> lifePolicy, QObject *parent)
+        : QObject(parent), mLifePolicy(std::move(lifePolicy))
+    {
+
+        // Si aucune policy n'est injectée, on utilise la règle par défaut
+        if (!mLifePolicy)
+        {
+            mLifePolicy = std::make_unique<StreakLifePolicy>(3); // 3 vies par défaut
+        }
+    }
 
     std::optional<data::GameSession> QuizEngine::getBestSession() const
     {
@@ -54,9 +66,18 @@ namespace ElCalculator::services
 
     void QuizEngine::startNewGameSession()
     {
+        mLives = mLifePolicy->initialize();
+        mStreak = 0;
+        mSessionSaved = false; // Reset du flag de sauvegarde
+
         data::GameSession session;
         session.startedAt = std::chrono::system_clock::now();
+        session.initialLives = mLives;
+        session.remainingLives = mLives;
+
         mCurrentSession = session;
+
+        emit livesChanged(mLives);
     }
 
     void QuizEngine::endCurrentSession(data::GameStatus status)
@@ -65,16 +86,26 @@ namespace ElCalculator::services
             return;
 
         mCurrentSession->endedAt = std::chrono::system_clock::now();
-        mCurrentSession->finalStatus = status;
         mCurrentSession->computeDuration();
         mCurrentSession->computeFinalScore();
 
+        // Si on termine sans sauvegarde explicite, on force le statut Abandoned
+        if (!mSessionSaved && status != data::GameStatus::Failure)
+        {
+            mCurrentSession->finalStatus = data::GameStatus::Abandoned;
+            mCurrentSession->endedWithoutSave = true;
+        }
+        else
+        {
+            mCurrentSession->finalStatus = status;
+            mCurrentSession->endedWithoutSave = false;
+        }
+
         // Ajout à l'historique
         mHistory.push_back(*mCurrentSession);
-
         mLastSession = mCurrentSession;
-        emit sessionEnded(*mCurrentSession);
 
+        emit sessionEnded(*mCurrentSession);
         mCurrentSession.reset();
     }
 
@@ -170,12 +201,26 @@ namespace ElCalculator::services
     {
         bool isCorrect = (reponse == mDerniereBonneReponse);
 
+        LifeUpdateResult lifeResult = mLifePolicy->evaluateAnswer(isCorrect, mLives, mMaxLives);
+
         if (mCurrentSession)
         {
             if (isCorrect)
                 mCurrentSession->correctAnswers++;
             else
                 mCurrentSession->wrongAnswers++;
+
+            mCurrentSession->livesGained += lifeResult.livesGained;
+            mCurrentSession->livesLost += lifeResult.livesLost;
+            mCurrentSession->remainingLives = lifeResult.newLives;
+        }
+        mLives = lifeResult.newLives;
+        emit livesChanged(mLives);
+
+        if (lifeResult.isGameOver)
+        {
+            endCurrentSession(data::GameStatus::Failure); // Fin immédiate
+            return data::Result(data::Result::Status::Failure, "GAME OVER : Vous n'avez plus de vies !");
         }
 
         if (isCorrect)

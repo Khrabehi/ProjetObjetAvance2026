@@ -35,11 +35,20 @@ namespace ElCalculator::gui
         auto lastSession = mEngine->getLastSession();
         if (lastSession)
         {
-            QString statusText = (lastSession->finalStatus == data::GameStatus::Success) ? "Terminée" : "Abandonnée";
-            mLastRunLabel->setText(QString("Dernière partie : %1 pts (%2 bonnes réponses, %3s) - %4")
+            // Distinction claire des statuts
+            QString statusText;
+            if (lastSession->finalStatus == data::GameStatus::Success)
+                statusText = "Victoire";
+            else if (lastSession->finalStatus == data::GameStatus::Failure)
+                statusText = "Défaite (0 vie)";
+            else
+                statusText = "Abandonnée";
+
+            // Ajout des vies restantes dans l'affichage
+            mLastRunLabel->setText(QString("Dernière partie : %1 pts (%2 bonnes, %3 vies) - %4")
                                        .arg(lastSession->score)
                                        .arg(lastSession->correctAnswers)
-                                       .arg(lastSession->durationSeconds)
+                                       .arg(lastSession->remainingLives)
                                        .arg(statusText));
         }
 
