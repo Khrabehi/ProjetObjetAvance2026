@@ -7,6 +7,51 @@
 namespace ElCalculator::services
 {
 
+    std::optional<data::GameSession> QuizEngine::getBestSession() const
+    {
+        if (mHistory.empty())
+        {
+            return std::nullopt;
+        }
+
+        // Trouve la session avec le meilleur score, en cas d'égalité, celle avec la durée la plus courte
+        auto it = std::max_element(mHistory.begin(), mHistory.end(),
+                                   [](const data::GameSession &a, const data::GameSession &b)
+                                   {
+                                       if (a.score != b.score)
+                                           return a.score < b.score;
+                                       return a.durationSeconds > b.durationSeconds; // En cas d'égalité, le plus rapide gagne
+                                   });
+
+        return *it;
+    }
+
+    std::vector<data::GameSession> QuizEngine::getTopScores(int n) const
+    {
+        if (mHistory.empty())
+            return {};
+
+        // Copie de l'historique pour ne pas modifier l'ordre chronologique de mHistory
+        std::vector<data::GameSession> sortedHistory = mHistory;
+
+        // Tri décroissant
+        std::sort(sortedHistory.begin(), sortedHistory.end(),
+                  [](const data::GameSession &a, const data::GameSession &b)
+                  {
+                      if (a.score != b.score)
+                          return a.score > b.score;
+                      return a.durationSeconds < b.durationSeconds;
+                  });
+
+        // On ne garde que les N premiers
+        if (static_cast<int>(sortedHistory.size()) > n)
+        {
+            sortedHistory.resize(n);
+        }
+
+        return sortedHistory;
+    }
+
     void QuizEngine::startNewGameSession()
     {
         data::GameSession session;
@@ -24,7 +69,7 @@ namespace ElCalculator::services
         mCurrentSession->computeDuration();
         mCurrentSession->computeFinalScore();
 
-        //Ajout à l'historique
+        // Ajout à l'historique
         mHistory.push_back(*mCurrentSession);
 
         mLastSession = mCurrentSession;
@@ -125,18 +170,23 @@ namespace ElCalculator::services
     {
         bool isCorrect = (reponse == mDerniereBonneReponse);
 
-        if(mCurrentSession) {
-            if (isCorrect) mCurrentSession->correctAnswers++;
-            else mCurrentSession->wrongAnswers++;
+        if (mCurrentSession)
+        {
+            if (isCorrect)
+                mCurrentSession->correctAnswers++;
+            else
+                mCurrentSession->wrongAnswers++;
         }
-        
 
-        if (isCorrect) {
+        if (isCorrect)
+        {
             mStreak++;
             updateDifficulty();
             lootItem();
             return data::Result(data::Result::Status::Success, "Bonne réponse !");
-        } else {
+        }
+        else
+        {
             mStreak = 0;
             updateDifficulty();
             return data::Result(data::Result::Status::Failure, "Mauvaise réponse.");
@@ -163,7 +213,8 @@ namespace ElCalculator::services
         {
             // On réduit le stock et on notifie.
             mInventory.removeItem(type, 1);
-            if (mCurrentSession) {
+            if (mCurrentSession)
+            {
                 mCurrentSession->itemsUsed++;
             }
             emit inventoryUpdated(&mInventory);
@@ -185,5 +236,11 @@ namespace ElCalculator::services
     const data::Response &QuizEngine::getDerniereBonneReponse() const
     {
         return mDerniereBonneReponse;
+    }
+
+    void QuizEngine::setHistory(const std::vector<data::GameSession> &history)
+    {
+        mHistory = history;
+        mLastSession = mHistory.empty() ? std::nullopt : std::optional<data::GameSession>(mHistory.back());
     }
 }

@@ -27,6 +27,8 @@ target_link_libraries( base PUBLIC Qt6::Widgets )
 
 add_executable( ${PROJECT_NAME}
                 main.cpp
-                services/GameHistoryRepository.hpp )
+                services/GameHistoryRepository.hpp
+                gui/ScorePanel.hpp
+                gui/ScorePanel.cpp )
 
 target_link_libraries( ${PROJECT_NAME} PRIVATE base Qt6::Widgets Qt6::Core )

@@ -2,6 +2,9 @@
 #include "MainWindow.hpp"
 
 #include "InventoryWidget.hpp"
+#include "ScorePanel.hpp"
+
+#include "services/GameHistoryRepository.hpp"
 
 #include "services/QuizEngine.hpp"
 #include "services/InventoryRepository.hpp"
@@ -36,6 +39,10 @@ namespace ElCalculator::gui
     mInventoryPanel = new InventoryWidget();
     mInventoryPanel->hide();
 
+    mScorePanel = new ScorePanel(mQuizEngine, this);
+    mMainLayout->addWidget(mScorePanel, 0, 2, 4, 1);
+    mScorePanel->updateScores();
+
     connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
             mInventoryPanel, &InventoryWidget::updateInventory);
 
@@ -65,7 +72,7 @@ namespace ElCalculator::gui
 
     // Connexion des items avec le moteur de quiz
     connect(mInventoryPanel, &InventoryWidget::itemUsed, this, [this](data::ItemType type)
-        {
+            {
       if (type == data::ItemType::DeleteAnswer) {
         if (mInterrogation) {
           bool hidden = mInterrogation->hideWrongAnswer();
@@ -117,13 +124,13 @@ namespace ElCalculator::gui
           default:
             break;
         }
-      }
-    });
+      } });
 
     auto *btnDemarrer = new QPushButton("Démarrer le Quiz");
     connect(btnDemarrer, &QPushButton::clicked, this,
             [this, btnDemarrer]
             {
+              mQuizEngine->startNewGameSession();
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
               btnDemarrer->hide(); // On cache le bouton une fois le quiz lancé
               mInventoryPanel->show();
@@ -141,9 +148,19 @@ namespace ElCalculator::gui
             });
 
     // Quit button (dans la barre du haut)
-    auto *quitButton = new QPushButton("Quit");
-    connect(quitButton, &QPushButton::clicked, this, &MainWindow::close);
-    topBar->addWidget(quitButton, 0, Qt::AlignRight);
+    auto *stopButton = new QPushButton("Terminer la partie");
+    connect(stopButton, &QPushButton::clicked, this, [this, btnDemarrer, stopButton]
+            {
+              // Enregistre la fin de session
+              mQuizEngine->endCurrentSession(data::GameStatus::Abandoned);
+
+              // Reset de l'UI
+              if (mInterrogation) mInterrogation->hide();
+              if (mPreviousResult) mPreviousResult->hide();
+              mInventoryPanel->hide();
+              mDifficultyLabel->hide();
+              btnDemarrer->show(); });
+    topBar->addWidget(stopButton, 0, Qt::AlignRight);
 
     mMainLayout->addLayout(topBar, 0, 0);
 
@@ -170,14 +187,16 @@ namespace ElCalculator::gui
       delete mInterrogation;
     }
     mInterrogation = new Interrogation(interrogation, mQuizEngine->getDerniereBonneReponse());
+    connect(mQuizEngine, &services::QuizEngine::sessionEnded, mScorePanel, &ScorePanel::updateScores); // Connect l'update du score
     connect(mInterrogation, &Interrogation::responseSelected, this,
             &MainWindow::responseSelected);
     mMainLayout->addWidget(mInterrogation, mInterrogationPosition.first,
                            mInterrogationPosition.second);
 
     // Après avoir changé d'interrogation, on vérifie si le bonus 50/50 peut être utilisé
-    if (mInventoryPanel) {
-        mInventoryPanel->setItemUsable(data::ItemType::DeleteAnswer, mInterrogation->canHideWrongAnswer());
+    if (mInventoryPanel)
+    {
+      mInventoryPanel->setItemUsable(data::ItemType::DeleteAnswer, mInterrogation->canHideWrongAnswer());
     }
   }
 
@@ -195,15 +214,20 @@ namespace ElCalculator::gui
 
   void ElCalculator::gui::MainWindow::closeEvent(QCloseEvent *event)
   {
-    QString saveFile = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/inventory.json";
+    QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString invFile = appDataPath + "/inventory.json";
+    QString historyFile = appDataPath + "/history.json";
 
     if (mQuizEngine)
     {
-      if (!services::InventoryRepository::saveInventory(
-              mQuizEngine->getInventory(), saveFile))
+      // Gestion d'une fermeture pendant une partie
+      if (mQuizEngine->getLastSession() == std::nullopt)
       {
-        qWarning() << "Inventaire non sauvegarde:" << saveFile;
+        mQuizEngine->endCurrentSession(data::GameStatus::Abandoned);
       }
+
+      services::InventoryRepository::saveInventory(mQuizEngine->getInventory(), invFile);
+      services::GameHistoryRepository::saveHistory(mQuizEngine->getHistory(), historyFile);
     }
 
     event->accept();
