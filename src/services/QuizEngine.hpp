@@ -4,6 +4,7 @@
 #include "data/Result.hpp"
 #include "data/Inventory.hpp"
 #include "data/Difficulty.hpp"
+#include "data/GameSession.hpp"
 #include <QObject>
 
 #include <string>
@@ -15,6 +16,9 @@ namespace ElCalculator::services
     {
         Q_OBJECT
     public:
+        // Gérer le cycle de vie d'une partie
+        void startNewGameSession();
+        void endCurrentSession(data::GameStatus status);
         // Génère une nouvelle interrogation à poser à l'utilisateur
         data::Interrogation genererProchaineInterrogation();
 
@@ -23,22 +27,34 @@ namespace ElCalculator::services
 
         bool useItem(data::ItemType type);
 
-        const data::Inventory& getInventory() const;
-        data::Inventory& getInventory();
+        const data::Inventory &getInventory() const;
+        data::Inventory &getInventory();
         const data::Response &getDerniereBonneReponse() const;
 
+        std::optional<data::GameSession> getLastSession() const { return mLastSession; }
+
+        std::optional<data::GameSession> getBestSession() const;
+        std::vector<data::GameSession> getTopScores(int n = 5) const;
+
+        const std::vector<data::GameSession> &getHistory() const { return mHistory; }
+        std::vector<data::GameSession> &getHistoryNonConst() { return mHistory; }
+        void setHistory(const std::vector<data::GameSession> &history);
+
     signals:
-        void inventoryUpdated(data::Inventory *inventory); // Signal émis lorsque l'inventaire est mis à jour
+        void inventoryUpdated(data::Inventory *inventory);      // Signal émis lorsque l'inventaire est mis à jour
         void difficultyChanged(data::Difficulty newDifficulty); // Signal émis lorsque la difficulté change
+        void sessionEnded(data::GameSession finalResult);       // Signal émis à la fin d'une session de jeu
 
     private:
-
         void lootItem(); // Fonction qui va attribuer aléatoirement un item
         void updateDifficulty();
 
         data::Response mDerniereBonneReponse;
         data::Inventory mInventory;
-        int mStreak = 0; // Compteur de bonnes réponses à la suite 
-        data::Difficulty mCurrentDifficulty = data::Difficulty::Easy; 
+        int mStreak = 0; // Compteur de bonnes réponses à la suite
+        data::Difficulty mCurrentDifficulty = data::Difficulty::Easy;
+        std::optional<data::GameSession> mCurrentSession;
+        std::optional<data::GameSession> mLastSession;
+        std::vector<data::GameSession> mHistory;
     };
 } // namespace ElCalculator::services

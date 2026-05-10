@@ -2,6 +2,7 @@
 #include "gui/MainWindow.hpp"
 #include "services/InventoryRepository.hpp"
 #include "services/QuizEngine.hpp"
+#include "services/GameHistoryRepository.hpp"
 #include "data/Item.hpp"
 
 #include <QApplication>
@@ -20,16 +21,22 @@ int main(int argc, char *argv[])
   // Chemin de sauvegarde
   QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
   QDir().mkpath(appDataPath); // Crée le dossier s'il n'existe pas
-  QString saveFile = appDataPath + "/inventory.json";
+  QString invFile = appDataPath + "/inventory.json";
+  QString historyFile = appDataPath + "/history.json";
 
   ElCalculator::services::QuizEngine quizEngine;
   if (!ElCalculator::services::InventoryRepository::loadInventory(
-          quizEngine.getInventory(), saveFile))
+          quizEngine.getInventory(), invFile))
   {
-    qWarning() << "Inventaire non charge:" << saveFile;
+    qWarning() << "Inventaire non charge:" << invFile;
   }
 
-  //quizEngine.getInventory().addItem(ElCalculator::data::ItemType::DeleteAnswer, 99);
+  ElCalculator::services::InventoryRepository::loadInventory(quizEngine.getInventory(), invFile);
+  // Historique des parties
+  std::vector<ElCalculator::data::GameSession> loadedHistory =
+      ElCalculator::services::GameHistoryRepository::loadHistory(historyFile);
+  quizEngine.setHistory(loadedHistory);
+  // quizEngine.getInventory().addItem(ElCalculator::data::ItemType::DeleteAnswer, 99);
 
   // Injecter le service de quiz dans la fenêtre
   ElCalculator::gui::MainWindow fenetre(&quizEngine);

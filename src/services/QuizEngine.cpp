@@ -7,20 +7,97 @@
 namespace ElCalculator::services
 {
 
+    std::optional<data::GameSession> QuizEngine::getBestSession() const
+    {
+        if (mHistory.empty())
+        {
+            return std::nullopt;
+        }
+
+        // Trouve la session avec le meilleur score, en cas d'égalité, celle avec la durée la plus courte
+        auto it = std::max_element(mHistory.begin(), mHistory.end(),
+                                   [](const data::GameSession &a, const data::GameSession &b)
+                                   {
+                                       if (a.score != b.score)
+                                           return a.score < b.score;
+                                       return a.durationSeconds > b.durationSeconds; // En cas d'égalité, le plus rapide gagne
+                                   });
+
+        return *it;
+    }
+
+    std::vector<data::GameSession> QuizEngine::getTopScores(int n) const
+    {
+        if (mHistory.empty())
+            return {};
+
+        // Copie de l'historique pour ne pas modifier l'ordre chronologique de mHistory
+        std::vector<data::GameSession> sortedHistory = mHistory;
+
+        // Tri décroissant
+        std::sort(sortedHistory.begin(), sortedHistory.end(),
+                  [](const data::GameSession &a, const data::GameSession &b)
+                  {
+                      if (a.score != b.score)
+                          return a.score > b.score;
+                      return a.durationSeconds < b.durationSeconds;
+                  });
+
+        // On ne garde que les N premiers
+        if (static_cast<int>(sortedHistory.size()) > n)
+        {
+            sortedHistory.resize(n);
+        }
+
+        return sortedHistory;
+    }
+
+    void QuizEngine::startNewGameSession()
+    {
+        data::GameSession session;
+        session.startedAt = std::chrono::system_clock::now();
+        mCurrentSession = session;
+    }
+
+    void QuizEngine::endCurrentSession(data::GameStatus status)
+    {
+        if (!mCurrentSession)
+            return;
+
+        mCurrentSession->endedAt = std::chrono::system_clock::now();
+        mCurrentSession->finalStatus = status;
+        mCurrentSession->computeDuration();
+        mCurrentSession->computeFinalScore();
+
+        // Ajout à l'historique
+        mHistory.push_back(*mCurrentSession);
+
+        mLastSession = mCurrentSession;
+        emit sessionEnded(*mCurrentSession);
+
+        mCurrentSession.reset();
+    }
+
     void QuizEngine::updateDifficulty()
     {
         data::Difficulty newDifficulty = data::Difficulty::Easy;
-        if(mStreak >= 10) {
+        if (mStreak >= 10)
+        {
             newDifficulty = data::Difficulty::Expert;
-        } else if(mStreak >= 6) {
+        }
+        else if (mStreak >= 6)
+        {
             newDifficulty = data::Difficulty::Hard;
-        } else if(mStreak >= 3) {
+        }
+        else if (mStreak >= 3)
+        {
             newDifficulty = data::Difficulty::Medium;
         }
 
-        if(newDifficulty != mCurrentDifficulty) {
+        if (newDifficulty != mCurrentDifficulty)
+        {
             mCurrentDifficulty = newDifficulty;
-            emit difficultyChanged(mCurrentDifficulty); 
+            emit difficultyChanged(mCurrentDifficulty);
         }
     }
 
@@ -30,19 +107,28 @@ namespace ElCalculator::services
 
         static std::random_device randomDevice;              // Générateur de nombres aléatoires pour sélectionner une question
         static std::mt19937 randomGenerator(randomDevice()); // Moteur de génération de nombres aléatoires
-        
+
         int min = 1;
         int max = 10;
 
-        switch (mCurrentDifficulty) {
-            case data::Difficulty::Easy:
-                min = 1; max = 10; break;
-            case data::Difficulty::Medium:
-                min = 1; max = 20; break;
-            case data::Difficulty::Hard:
-                min = 5; max = 50; break;
-            case data::Difficulty::Expert:
-                min = 10; max = 99; break; // Multiplications à 2 chiffres
+        switch (mCurrentDifficulty)
+        {
+        case data::Difficulty::Easy:
+            min = 1;
+            max = 10;
+            break;
+        case data::Difficulty::Medium:
+            min = 1;
+            max = 20;
+            break;
+        case data::Difficulty::Hard:
+            min = 5;
+            max = 50;
+            break;
+        case data::Difficulty::Expert:
+            min = 10;
+            max = 99;
+            break; // Multiplications à 2 chiffres
         }
 
         std::uniform_int_distribution<> dis(min, max); // Distribution de min à max inclus
@@ -82,18 +168,28 @@ namespace ElCalculator::services
     // Traite la réponse de l'utilisateur en la comparant à la dernière bonne réponse stockée et retourne un résultat d'évaluation
     data::Result QuizEngine::traiterReponse(const data::Response &reponse)
     {
-        if (reponse == mDerniereBonneReponse)
+        bool isCorrect = (reponse == mDerniereBonneReponse);
+
+        if (mCurrentSession)
+        {
+            if (isCorrect)
+                mCurrentSession->correctAnswers++;
+            else
+                mCurrentSession->wrongAnswers++;
+        }
+
+        if (isCorrect)
         {
             mStreak++;
             updateDifficulty();
-            lootItem(); // Tente de looter un item après une bonne réponse
+            lootItem();
             return data::Result(data::Result::Status::Success, "Bonne réponse !");
         }
         else
         {
             mStreak = 0;
             updateDifficulty();
-            return data::Result(data::Result::Status::Failure, "Mauvaise réponse. La bonne réponse était : " + mDerniereBonneReponse);
+            return data::Result(data::Result::Status::Failure, "Mauvaise réponse.");
         }
     }
 
@@ -104,7 +200,7 @@ namespace ElCalculator::services
         std::uniform_int_distribution<> dis(1, 100);
 
         if (dis(gen) <= 30) // DEBUG 100%
-        { // 30% de chance de looter un item
+        {                   // 30% de chance de looter un item
             auto item = ItemFactory::createRandomItem();
             mInventory.addItem(item->getId(), 1);
             emit inventoryUpdated(&mInventory); // Émettre le signal pour notifier les changements d'inventaire
@@ -117,6 +213,10 @@ namespace ElCalculator::services
         {
             // On réduit le stock et on notifie.
             mInventory.removeItem(type, 1);
+            if (mCurrentSession)
+            {
+                mCurrentSession->itemsUsed++;
+            }
             emit inventoryUpdated(&mInventory);
             return true;
         }
@@ -136,5 +236,11 @@ namespace ElCalculator::services
     const data::Response &QuizEngine::getDerniereBonneReponse() const
     {
         return mDerniereBonneReponse;
+    }
+
+    void QuizEngine::setHistory(const std::vector<data::GameSession> &history)
+    {
+        mHistory = history;
+        mLastSession = mHistory.empty() ? std::nullopt : std::optional<data::GameSession>(mHistory.back());
     }
 }

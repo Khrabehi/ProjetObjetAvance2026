@@ -17,7 +17,7 @@ target_sources( base
 
 target_sources( base
   PRIVATE
-    services/QuizEngine.cpp services/ItemFactory.cpp services/InventoryRepository.cpp
+    services/QuizEngine.cpp services/ItemFactory.cpp services/InventoryRepository.cpp services/GameHistoryRepository.cpp
 )
 
 target_include_directories( base
@@ -26,6 +26,9 @@ target_include_directories( base
 target_link_libraries( base PUBLIC Qt6::Widgets )
 
 add_executable( ${PROJECT_NAME}
-                main.cpp )
+                main.cpp
+                services/GameHistoryRepository.hpp
+                gui/ScorePanel.hpp
+                gui/ScorePanel.cpp )
 
 target_link_libraries( ${PROJECT_NAME} PRIVATE base Qt6::Widgets Qt6::Core )

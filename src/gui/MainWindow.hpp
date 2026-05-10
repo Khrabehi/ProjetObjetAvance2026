@@ -9,6 +9,7 @@
 #include <gui/PreviousResult.hpp>
 #include "InventoryWidget.hpp"
 #include "data/Difficulty.hpp"
+#include "ScorePanel.hpp"
 
 #include <QGridLayout>
 #include <QLabel>
@@ -53,6 +54,7 @@ namespace ElCalculator::gui
     Interrogation *mInterrogation = nullptr;
     std::pair<int, int> mPreviousResultPosition;
     PreviousResult *mPreviousResult = nullptr;
+    ScorePanel* mScorePanel = nullptr;
 
   protected:
     void closeEvent(QCloseEvent *event) override;
