@@ -4,6 +4,7 @@
 #include "data/Result.hpp"
 #include "data/Inventory.hpp"
 #include "data/Difficulty.hpp"
+#include "data/GameSession.hpp"
 #include <QObject>
 
 #include <string>
@@ -15,6 +16,9 @@ namespace ElCalculator::services
     {
         Q_OBJECT
     public:
+        //Gérer le cycle de vie d'une partie 
+        void startNewGameSession();
+        void endCurrentSession(data::GameStatus status);
         // Génère une nouvelle interrogation à poser à l'utilisateur
         data::Interrogation genererProchaineInterrogation();
 
@@ -27,9 +31,12 @@ namespace ElCalculator::services
         data::Inventory& getInventory();
         const data::Response &getDerniereBonneReponse() const;
 
+        std::optional<data::GameSession> getLastSession() const { return mLastSession; }
+
     signals:
         void inventoryUpdated(data::Inventory *inventory); // Signal émis lorsque l'inventaire est mis à jour
         void difficultyChanged(data::Difficulty newDifficulty); // Signal émis lorsque la difficulté change
+        void sessionEnded(data::GameSession finalResult); // Signal émis à la fin d'une session de jeu
 
     private:
 
@@ -40,5 +47,7 @@ namespace ElCalculator::services
         data::Inventory mInventory;
         int mStreak = 0; // Compteur de bonnes réponses à la suite 
         data::Difficulty mCurrentDifficulty = data::Difficulty::Easy; 
+        std::optional<data::GameSession> mCurrentSession;
+        std::optional<data::GameSession> mLastSession;
     };
 } // namespace ElCalculator::services
