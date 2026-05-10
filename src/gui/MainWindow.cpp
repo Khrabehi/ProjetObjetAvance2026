@@ -43,6 +43,8 @@ namespace ElCalculator::gui
     mMainLayout->addWidget(mScorePanel, 0, 2, 4, 1);
     mScorePanel->updateScores();
 
+    connect(mQuizEngine, &services::QuizEngine::sessionEnded, mScorePanel, &ScorePanel::updateScores);
+
     connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
             mInventoryPanel, &InventoryWidget::updateInventory);
 
@@ -152,8 +154,13 @@ namespace ElCalculator::gui
             [this](data::Response response)
             {
               data::Result result = mQuizEngine->traiterReponse(response);
-              setPreviousResult(result);
+              // si l'utilisateur a perdu, on affiche le résultat final et on arrête là
+              if (!mInventoryPanel->isVisible())
+              {
+                return; // On arrête l'exécution ici, pas de nouvelle question !
+              }
 
+              setPreviousResult(result);
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
             });
 
@@ -203,7 +210,6 @@ namespace ElCalculator::gui
       delete mInterrogation;
     }
     mInterrogation = new Interrogation(interrogation, mQuizEngine->getDerniereBonneReponse());
-    connect(mQuizEngine, &services::QuizEngine::sessionEnded, mScorePanel, &ScorePanel::updateScores); // Connect l'update du score
     connect(mInterrogation, &Interrogation::responseSelected, this,
             &MainWindow::responseSelected);
     mMainLayout->addWidget(mInterrogation, mInterrogationPosition.first,
