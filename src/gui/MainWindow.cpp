@@ -43,6 +43,8 @@ namespace ElCalculator::gui
     mMainLayout->addWidget(mScorePanel, 0, 2, 4, 1);
     mScorePanel->updateScores();
 
+    connect(mQuizEngine, &services::QuizEngine::sessionEnded, mScorePanel, &ScorePanel::updateScores);
+
     connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
             mInventoryPanel, &InventoryWidget::updateInventory);
 
@@ -52,11 +54,20 @@ namespace ElCalculator::gui
     mDifficultyLabel->setStyleSheet("font-weight: bold; color: #2980b9; font-size: 14px;");
     mDifficultyLabel->hide(); // On le cache tant que le quiz n'a pas démarré
 
+    mLivesLabel = new QLabel("❤️ Vies : -", this);
+    mLivesLabel->setAlignment(Qt::AlignCenter);
+    mLivesLabel->setStyleSheet("font-weight: bold; color: #e74c3c; font-size: 14px;");
+    mLivesLabel->hide(); // Caché avant le début du quiz
+
     auto *topBar = new QHBoxLayout();
     topBar->setContentsMargins(0, 0, 0, 0);
     topBar->setSpacing(12);
     topBar->addWidget(mInventoryPanel, 1);
     topBar->addWidget(mDifficultyLabel, 0, Qt::AlignCenter);
+    topBar->addWidget(mLivesLabel, 0, Qt::AlignCenter);
+
+    connect(mQuizEngine, &services::QuizEngine::livesChanged, this, [this](int lives)
+            { mLivesLabel->setText(QString("❤️ Vies : %1").arg(lives)); });
 
     connect(mQuizEngine, &services::QuizEngine::difficultyChanged,
             this, [this](data::Difficulty newDiff)
@@ -126,41 +137,59 @@ namespace ElCalculator::gui
         }
       } });
 
+    // Quit button (dans la barre du haut)
+    auto *stopButton = new QPushButton("Quitter", this);
     auto *btnDemarrer = new QPushButton("Démarrer le Quiz");
+    connect(stopButton, &QPushButton::clicked, this, [this, btnDemarrer, stopButton]
+            {
+              if (stopButton->text() == "Quitter") {
+              this->close(); // Ferme la fenêtre si aucune partie n'est en cours
+            } else {
+              // Sinon, termine la session
+              mQuizEngine->endCurrentSession(data::GameStatus::Abandoned);
+            } });
+
     connect(btnDemarrer, &QPushButton::clicked, this,
-            [this, btnDemarrer]
+            [this, btnDemarrer, stopButton]
             {
               mQuizEngine->startNewGameSession();
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
               btnDemarrer->hide(); // On cache le bouton une fois le quiz lancé
               mInventoryPanel->show();
               mDifficultyLabel->show();
+              mLivesLabel->show();
+              stopButton->setText("Terminer la partie");
             });
     topBar->addWidget(btnDemarrer, 0, Qt::AlignRight);
+    topBar->addWidget(stopButton, 0, Qt::AlignRight);
 
     connect(this, &MainWindow::responseSelected, this,
             [this](data::Response response)
             {
               data::Result result = mQuizEngine->traiterReponse(response);
-              setPreviousResult(result);
+              // si l'utilisateur a perdu, on affiche le résultat final et on arrête là
+              if (!mInventoryPanel->isVisible())
+              {
+                return; // On arrête l'exécution ici, pas de nouvelle question !
+              }
 
+              setPreviousResult(result);
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
             });
 
-    // Quit button (dans la barre du haut)
-    auto *stopButton = new QPushButton("Terminer la partie");
-    connect(stopButton, &QPushButton::clicked, this, [this, btnDemarrer, stopButton]
+    connect(mQuizEngine, &services::QuizEngine::sessionEnded, this,
+            [this, btnDemarrer, stopButton](const data::GameSession & /*result*/) // <-- Ajout de stopButton ici
             {
-              // Enregistre la fin de session
-              mQuizEngine->endCurrentSession(data::GameStatus::Abandoned);
-
-              // Reset de l'UI
-              if (mInterrogation) mInterrogation->hide();
-              if (mPreviousResult) mPreviousResult->hide();
+              if (mInterrogation)
+                mInterrogation->hide();
+              if (mPreviousResult)
+                mPreviousResult->hide();
               mInventoryPanel->hide();
               mDifficultyLabel->hide();
-              btnDemarrer->show(); });
-    topBar->addWidget(stopButton, 0, Qt::AlignRight);
+              mLivesLabel->hide();
+              btnDemarrer->show();
+              stopButton->setText("Quitter");
+            });
 
     mMainLayout->addLayout(topBar, 0, 0);
 
@@ -187,7 +216,6 @@ namespace ElCalculator::gui
       delete mInterrogation;
     }
     mInterrogation = new Interrogation(interrogation, mQuizEngine->getDerniereBonneReponse());
-    connect(mQuizEngine, &services::QuizEngine::sessionEnded, mScorePanel, &ScorePanel::updateScores); // Connect l'update du score
     connect(mInterrogation, &Interrogation::responseSelected, this,
             &MainWindow::responseSelected);
     mMainLayout->addWidget(mInterrogation, mInterrogationPosition.first,

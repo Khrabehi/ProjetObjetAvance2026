@@ -24,6 +24,14 @@ namespace ElCalculator::data
         int wrongAnswers = 0;
         int itemsUsed = 0;
 
+        // Suivi des vies
+        int initialLives = 0;
+        int remainingLives = 0;
+        int livesLost = 0;
+        int livesGained = 0;
+
+        bool endedWithoutSave = true;
+
         // Résultat
         int score = 0;
         GameStatus finalStatus = GameStatus::Abandoned; // Abandonné par défaut si la partie crash
