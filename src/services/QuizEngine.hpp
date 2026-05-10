@@ -49,5 +49,6 @@ namespace ElCalculator::services
         data::Difficulty mCurrentDifficulty = data::Difficulty::Easy; 
         std::optional<data::GameSession> mCurrentSession;
         std::optional<data::GameSession> mLastSession;
+        std::vector<data::GameSession> mHistory;
     };
 } // namespace ElCalculator::services

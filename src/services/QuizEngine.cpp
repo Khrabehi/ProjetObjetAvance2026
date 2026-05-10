@@ -24,6 +24,9 @@ namespace ElCalculator::services
         mCurrentSession->computeDuration();
         mCurrentSession->computeFinalScore();
 
+        //Ajout à l'historique
+        mHistory.push_back(*mCurrentSession);
+
         mLastSession = mCurrentSession;
         emit sessionEnded(*mCurrentSession);
 
