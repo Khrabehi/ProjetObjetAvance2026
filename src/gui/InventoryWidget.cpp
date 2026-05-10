@@ -37,6 +37,27 @@ namespace ElCalculator::gui
         });
 
         mButtons[type] = btn;
+        mUsableOverrides[type] = true;
+    }
+
+    void InventoryWidget::setItemUsable(data::ItemType type, bool usable)
+    {
+        mUsableOverrides[type] = usable;
+        auto it = mButtons.find(type);
+        if (it == mButtons.end())
+        {
+            return;
+        }
+
+        int count = 0;
+        auto cntIt = mCounts.find(type);
+        if (cntIt != mCounts.end()) {
+            count = cntIt->second;
+        } else {
+            count = it->second->text().mid(1).toInt();
+        }
+
+        it->second->setEnabled(count > 0 && usable);
     }
 
     void InventoryWidget::updateInventory(const data::Inventory* inventory)
@@ -45,10 +66,18 @@ namespace ElCalculator::gui
 
         for(auto* item : inventory->getItemsList()) {
             auto type = item->getId();
+            // Vérifie si le bouton devient disable à cause de son stock
             if(mButtons.find(type) != mButtons.end()) {
                 int count = item->getCount();
                 mButtons[type]->setText("x" + QString::number(count));
-                mButtons[type]->setEnabled(count > 0);
+                mCounts[type] = count;
+                bool usable = true;
+                auto usableIt = mUsableOverrides.find(type);
+                if (usableIt != mUsableOverrides.end())
+                {
+                    usable = usableIt->second;
+                }
+                mButtons[type]->setEnabled(count > 0 && usable);
             }
         }
     }

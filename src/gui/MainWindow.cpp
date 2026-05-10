@@ -14,6 +14,8 @@
 
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <random>
+#include <cctype>
 namespace ElCalculator::gui
 {
 
@@ -31,11 +33,11 @@ namespace ElCalculator::gui
     mMainLayout->setHorizontalSpacing(12);
     mMainLayout->setVerticalSpacing(12);
 
-    auto *inventoryPanel = new InventoryWidget();
-    inventoryPanel->hide();
+    mInventoryPanel = new InventoryWidget();
+    mInventoryPanel->hide();
 
     connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
-            inventoryPanel, &InventoryWidget::updateInventory);
+            mInventoryPanel, &InventoryWidget::updateInventory);
 
     // Init label pour la difficulté
     mDifficultyLabel = new QLabel("Niveau : Facile", this);
@@ -46,7 +48,7 @@ namespace ElCalculator::gui
     auto *topBar = new QHBoxLayout();
     topBar->setContentsMargins(0, 0, 0, 0);
     topBar->setSpacing(12);
-    topBar->addWidget(inventoryPanel, 1);
+    topBar->addWidget(mInventoryPanel, 1);
     topBar->addWidget(mDifficultyLabel, 0, Qt::AlignCenter);
 
     connect(mQuizEngine, &services::QuizEngine::difficultyChanged,
@@ -62,37 +64,69 @@ namespace ElCalculator::gui
                 mDifficultyLabel->setText(levelText); });
 
     // Connexion des items avec le moteur de quiz
-    connect(inventoryPanel, &InventoryWidget::itemUsed, this, [this](data::ItemType type)
-            {
-      if (mQuizEngine->useItem(type)) {
-          
-          switch (type) {
-              case data::ItemType::Skip:
-                  setInterrogation(mQuizEngine->genererProchaineInterrogation());
-                  break;
-                  
-              case data::ItemType::Hint:
-                  if (mInterrogation) mInterrogation->displayHint("Un nombre pair..."); 
-                  break;
-                  
-              case data::ItemType::Solve:
-                  setPreviousResult({data::Result::Status::Success, "Réponse révélée par l'item !"});
-                  setInterrogation(mQuizEngine->genererProchaineInterrogation());
-                  break;
-                  
-              case data::ItemType::DeleteAnswer:
-                  if (mInterrogation) mInterrogation->hideWrongAnswer();
-                  break;
+    connect(mInventoryPanel, &InventoryWidget::itemUsed, this, [this](data::ItemType type)
+        {
+      if (type == data::ItemType::DeleteAnswer) {
+        if (mInterrogation) {
+          bool hidden = mInterrogation->hideWrongAnswer();
+          if (hidden) {
+            mQuizEngine->useItem(type);
           }
-      } });
+          mInventoryPanel->setItemUsable(data::ItemType::DeleteAnswer, mInterrogation->canHideWrongAnswer());
+        }
+        return;
+      }
+
+      if (mQuizEngine->useItem(type)) {
+        switch (type) {
+          case data::ItemType::Skip:
+            setInterrogation(mQuizEngine->genererProchaineInterrogation());
+            break;
+
+            case data::ItemType::Hint:
+              if (mInterrogation) {
+                const std::string ans = mQuizEngine->getDerniereBonneReponse();
+                QString hintText;
+                // Construction de l'indice : affiche un chiffre présent dans la réponse.
+                if (!ans.empty()) {
+                  std::vector<char> digits;
+                  for (char c : ans) {
+                    if (std::isdigit(static_cast<unsigned char>(c))) digits.push_back(c);
+                  }
+                  if (!digits.empty()) {
+                    static std::random_device rd;
+                    static std::mt19937 gen(rd());
+                    std::uniform_int_distribution<> dis(0, (int)digits.size() - 1);
+                    char chosen = digits[dis(gen)];
+                    hintText = QString("La réponse contient le chiffre %1").arg(QChar(chosen));
+                  } else {
+                    hintText = QString::fromStdString("Indice : commence par " + ans.substr(0,1));
+                  }
+                } else {
+                  hintText = "Indice indisponible";
+                }
+                mInterrogation->displayHint(hintText);
+              }
+              break;
+
+          case data::ItemType::Solve:
+            setPreviousResult({data::Result::Status::Success, "Réponse révélée par l'item !"});
+            setInterrogation(mQuizEngine->genererProchaineInterrogation());
+            break;
+
+          default:
+            break;
+        }
+      }
+    });
 
     auto *btnDemarrer = new QPushButton("Démarrer le Quiz");
     connect(btnDemarrer, &QPushButton::clicked, this,
-            [this, btnDemarrer, inventoryPanel]
+            [this, btnDemarrer]
             {
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
               btnDemarrer->hide(); // On cache le bouton une fois le quiz lancé
-              inventoryPanel->show();
+              mInventoryPanel->show();
               mDifficultyLabel->show();
             });
     topBar->addWidget(btnDemarrer, 0, Qt::AlignRight);
@@ -125,7 +159,7 @@ namespace ElCalculator::gui
     centralWidget->setLayout(mMainLayout);
     setCentralWidget(centralWidget);
 
-    inventoryPanel->updateInventory(&mQuizEngine->getInventory());
+    mInventoryPanel->updateInventory(&mQuizEngine->getInventory());
   }
 
   void MainWindow::setInterrogation(const data::Interrogation &interrogation)
@@ -135,11 +169,16 @@ namespace ElCalculator::gui
       mMainLayout->removeWidget(mInterrogation);
       delete mInterrogation;
     }
-    mInterrogation = new Interrogation(interrogation);
+    mInterrogation = new Interrogation(interrogation, mQuizEngine->getDerniereBonneReponse());
     connect(mInterrogation, &Interrogation::responseSelected, this,
             &MainWindow::responseSelected);
     mMainLayout->addWidget(mInterrogation, mInterrogationPosition.first,
                            mInterrogationPosition.second);
+
+    // Après avoir changé d'interrogation, on vérifie si le bonus 50/50 peut être utilisé
+    if (mInventoryPanel) {
+        mInventoryPanel->setItemUsable(data::ItemType::DeleteAnswer, mInterrogation->canHideWrongAnswer());
+    }
   }
 
   void MainWindow::setPreviousResult(const data::Result &result)

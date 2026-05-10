@@ -25,6 +25,7 @@ namespace ElCalculator::services
 
         const data::Inventory& getInventory() const;
         data::Inventory& getInventory();
+        const data::Response &getDerniereBonneReponse() const;
 
     signals:
         void inventoryUpdated(data::Inventory *inventory); // Signal émis lorsque l'inventaire est mis à jour

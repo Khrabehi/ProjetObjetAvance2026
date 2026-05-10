@@ -132,4 +132,9 @@ namespace ElCalculator::services
     {
         return mInventory;
     }
+
+    const data::Response &QuizEngine::getDerniereBonneReponse() const
+    {
+        return mDerniereBonneReponse;
+    }
 }
