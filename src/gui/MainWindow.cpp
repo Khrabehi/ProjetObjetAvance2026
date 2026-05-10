@@ -137,9 +137,20 @@ namespace ElCalculator::gui
         }
       } });
 
+    // Quit button (dans la barre du haut)
+    auto *stopButton = new QPushButton("Quitter", this);
     auto *btnDemarrer = new QPushButton("Démarrer le Quiz");
+    connect(stopButton, &QPushButton::clicked, this, [this, btnDemarrer, stopButton]
+            {
+              if (stopButton->text() == "Quitter") {
+              this->close(); // Ferme la fenêtre si aucune partie n'est en cours
+            } else {
+              // Sinon, termine la session
+              mQuizEngine->endCurrentSession(data::GameStatus::Abandoned);
+            } });
+
     connect(btnDemarrer, &QPushButton::clicked, this,
-            [this, btnDemarrer]
+            [this, btnDemarrer, stopButton]
             {
               mQuizEngine->startNewGameSession();
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
@@ -147,8 +158,10 @@ namespace ElCalculator::gui
               mInventoryPanel->show();
               mDifficultyLabel->show();
               mLivesLabel->show();
+              stopButton->setText("Terminer la partie");
             });
     topBar->addWidget(btnDemarrer, 0, Qt::AlignRight);
+    topBar->addWidget(stopButton, 0, Qt::AlignRight);
 
     connect(this, &MainWindow::responseSelected, this,
             [this](data::Response response)
@@ -165,7 +178,7 @@ namespace ElCalculator::gui
             });
 
     connect(mQuizEngine, &services::QuizEngine::sessionEnded, this,
-            [this, btnDemarrer](const data::GameSession & /*result*/)
+            [this, btnDemarrer, stopButton](const data::GameSession & /*result*/) // <-- Ajout de stopButton ici
             {
               if (mInterrogation)
                 mInterrogation->hide();
@@ -175,15 +188,8 @@ namespace ElCalculator::gui
               mDifficultyLabel->hide();
               mLivesLabel->hide();
               btnDemarrer->show();
+              stopButton->setText("Quitter");
             });
-
-    // Quit button (dans la barre du haut)
-    auto *stopButton = new QPushButton("Terminer la partie");
-    connect(stopButton, &QPushButton::clicked, this, [this, btnDemarrer, stopButton]
-            {
-              // Enregistre la fin de session
-              mQuizEngine->endCurrentSession(data::GameStatus::Abandoned); });
-    topBar->addWidget(stopButton, 0, Qt::AlignRight);
 
     mMainLayout->addLayout(topBar, 0, 0);
 
