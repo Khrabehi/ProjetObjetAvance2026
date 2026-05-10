@@ -16,11 +16,15 @@ namespace ElCalculator::gui
     private:
         // Stockage des boutons de l'UI 
         std::map<data::ItemType, QPushButton*> mButtons;
+        std::map<data::ItemType, bool> mUsableOverrides;
+        std::map<data::ItemType, int> mCounts;
 
         void setupButton(data::ItemType type, const QString& iconPath, const QString& tooltip);
     public:
         // Explicit est utilisé pour s'assurer que le constructeur ne peut pas être utilisé pour des conversions implicites.
         explicit InventoryWidget(QWidget* parent = nullptr);
+
+        void setItemUsable(data::ItemType type, bool usable);
 
     public slots:
         // Appelé quand on emit inventoryUpdated

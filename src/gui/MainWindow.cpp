@@ -31,11 +31,11 @@ namespace ElCalculator::gui
     mMainLayout->setHorizontalSpacing(12);
     mMainLayout->setVerticalSpacing(12);
 
-    auto *inventoryPanel = new InventoryWidget();
-    inventoryPanel->hide();
+    mInventoryPanel = new InventoryWidget();
+    mInventoryPanel->hide();
 
     connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
-            inventoryPanel, &InventoryWidget::updateInventory);
+            mInventoryPanel, &InventoryWidget::updateInventory);
 
     // Init label pour la difficulté
     mDifficultyLabel = new QLabel("Niveau : Facile", this);
@@ -46,7 +46,7 @@ namespace ElCalculator::gui
     auto *topBar = new QHBoxLayout();
     topBar->setContentsMargins(0, 0, 0, 0);
     topBar->setSpacing(12);
-    topBar->addWidget(inventoryPanel, 1);
+    topBar->addWidget(mInventoryPanel, 1);
     topBar->addWidget(mDifficultyLabel, 0, Qt::AlignCenter);
 
     connect(mQuizEngine, &services::QuizEngine::difficultyChanged,
@@ -62,37 +62,47 @@ namespace ElCalculator::gui
                 mDifficultyLabel->setText(levelText); });
 
     // Connexion des items avec le moteur de quiz
-    connect(inventoryPanel, &InventoryWidget::itemUsed, this, [this](data::ItemType type)
-            {
-      if (mQuizEngine->useItem(type)) {
-          
-          switch (type) {
-              case data::ItemType::Skip:
-                  setInterrogation(mQuizEngine->genererProchaineInterrogation());
-                  break;
-                  
-              case data::ItemType::Hint:
-                  if (mInterrogation) mInterrogation->displayHint("Un nombre pair..."); 
-                  break;
-                  
-              case data::ItemType::Solve:
-                  setPreviousResult({data::Result::Status::Success, "Réponse révélée par l'item !"});
-                  setInterrogation(mQuizEngine->genererProchaineInterrogation());
-                  break;
-                  
-              case data::ItemType::DeleteAnswer:
-                  if (mInterrogation) mInterrogation->hideWrongAnswer();
-                  break;
+    connect(mInventoryPanel, &InventoryWidget::itemUsed, this, [this](data::ItemType type)
+        {
+      if (type == data::ItemType::DeleteAnswer) {
+        if (mInterrogation) {
+          bool hidden = mInterrogation->hideWrongAnswer();
+          if (hidden) {
+            mQuizEngine->useItem(type);
           }
-      } });
+          mInventoryPanel->setItemUsable(data::ItemType::DeleteAnswer, mInterrogation->canHideWrongAnswer());
+        }
+        return;
+      }
+
+      if (mQuizEngine->useItem(type)) {
+        switch (type) {
+          case data::ItemType::Skip:
+            setInterrogation(mQuizEngine->genererProchaineInterrogation());
+            break;
+
+          case data::ItemType::Hint:
+            if (mInterrogation) mInterrogation->displayHint("Un nombre pair...");
+            break;
+
+          case data::ItemType::Solve:
+            setPreviousResult({data::Result::Status::Success, "Réponse révélée par l'item !"});
+            setInterrogation(mQuizEngine->genererProchaineInterrogation());
+            break;
+
+          default:
+            break;
+        }
+      }
+    });
 
     auto *btnDemarrer = new QPushButton("Démarrer le Quiz");
     connect(btnDemarrer, &QPushButton::clicked, this,
-            [this, btnDemarrer, inventoryPanel]
+            [this, btnDemarrer]
             {
               setInterrogation(mQuizEngine->genererProchaineInterrogation());
               btnDemarrer->hide(); // On cache le bouton une fois le quiz lancé
-              inventoryPanel->show();
+              mInventoryPanel->show();
               mDifficultyLabel->show();
             });
     topBar->addWidget(btnDemarrer, 0, Qt::AlignRight);
@@ -125,7 +135,7 @@ namespace ElCalculator::gui
     centralWidget->setLayout(mMainLayout);
     setCentralWidget(centralWidget);
 
-    inventoryPanel->updateInventory(&mQuizEngine->getInventory());
+    mInventoryPanel->updateInventory(&mQuizEngine->getInventory());
   }
 
   void MainWindow::setInterrogation(const data::Interrogation &interrogation)
@@ -135,11 +145,16 @@ namespace ElCalculator::gui
       mMainLayout->removeWidget(mInterrogation);
       delete mInterrogation;
     }
-    mInterrogation = new Interrogation(interrogation);
+    mInterrogation = new Interrogation(interrogation, mQuizEngine->getDerniereBonneReponse());
     connect(mInterrogation, &Interrogation::responseSelected, this,
             &MainWindow::responseSelected);
     mMainLayout->addWidget(mInterrogation, mInterrogationPosition.first,
                            mInterrogationPosition.second);
+
+    // Après avoir changé d'interrogation, on vérifie si le bonus 50/50 peut être utilisé
+    if (mInventoryPanel) {
+        mInventoryPanel->setItemUsable(data::ItemType::DeleteAnswer, mInterrogation->canHideWrongAnswer());
+    }
   }
 
   void MainWindow::setPreviousResult(const data::Result &result)

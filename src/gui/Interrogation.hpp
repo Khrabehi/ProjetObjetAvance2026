@@ -19,10 +19,12 @@ namespace ElCalculator::gui
     Q_OBJECT
 
   public:
-    explicit Interrogation(const data::Interrogation &data, QWidget *parent = nullptr);
+    explicit Interrogation(const data::Interrogation &data,
+                 const data::Response &correctResponse,
+                 QWidget *parent = nullptr);
     void displayHint(const QString &texteIndice);
-
-    void hideWrongAnswer();
+    bool hideWrongAnswer();
+    bool canHideWrongAnswer() const;
 
   signals:
     void responseSelected(data::Response response);
@@ -32,6 +34,7 @@ namespace ElCalculator::gui
     QLabel *mHintLabel = nullptr;
     QVBoxLayout *mButtonsLayout = nullptr;
     std::vector<QPushButton *> mResponseButtons;
+    QString mCorrectResponse;
   };
 
 } // namespace ElCalculator::gui

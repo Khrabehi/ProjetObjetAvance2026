@@ -2,6 +2,7 @@
 #include "gui/MainWindow.hpp"
 #include "services/InventoryRepository.hpp"
 #include "services/QuizEngine.hpp"
+#include "data/Item.hpp"
 
 #include <QApplication>
 #include <QDir>
@@ -27,6 +28,8 @@ int main(int argc, char *argv[])
   {
     qWarning() << "Inventaire non charge:" << saveFile;
   }
+
+  //quizEngine.getInventory().addItem(ElCalculator::data::ItemType::DeleteAnswer, 99);
 
   // Injecter le service de quiz dans la fenêtre
   ElCalculator::gui::MainWindow fenetre(&quizEngine);

@@ -1,10 +1,15 @@
 #include "Interrogation.hpp"
 
+#include <random>
+#include <QDebug>
+
 namespace ElCalculator::gui
 {
 
-  Interrogation::Interrogation(const data::Interrogation &data, QWidget *parent)
-      : QWidget(parent)
+  Interrogation::Interrogation(const data::Interrogation &data,
+                               const data::Response &correctResponse,
+                               QWidget *parent)
+      : QWidget(parent), mCorrectResponse(QString::fromStdString(correctResponse))
   {
     auto *layout = new QVBoxLayout(this);
 
@@ -44,16 +49,56 @@ namespace ElCalculator::gui
     }
   }
 
-  void Interrogation::hideWrongAnswer()
+  // Fonction qui cache une mauvaise réponse lorsque le bonus est utilisé
+  bool Interrogation::hideWrongAnswer()
   {
+    std::vector<QPushButton *> wrongButtons;
     for (auto *btn : mResponseButtons)
     {
-      if (btn->isVisible())
+      if (btn->isHidden())
       {
-        btn->hide();
+        continue;
+      }
+      const QString responseValue = btn->property("responseValue").toString();
+      if (responseValue != mCorrectResponse)
+      {
+        wrongButtons.push_back(btn);
+      }
+    }
+
+    if (wrongButtons.empty())
+    {
+      return false;
+    }
+
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, wrongButtons.size() - 1);
+
+    auto *chosen = wrongButtons[dis(gen)];
+    chosen->hide();
+    return true;
+  }
+
+  // Fonction qui vérifie si on peut utiliser le bonus 50/50 (s'il reste au moins une mauvaise réponse visible)
+  bool Interrogation::canHideWrongAnswer() const
+  {
+    bool found = false;
+    for (auto *btn : mResponseButtons)
+    {
+      if (btn->isHidden())
+      {
+        continue;
+      }
+
+      const QString responseValue = btn->property("responseValue").toString();
+      if (responseValue != mCorrectResponse)
+      {
+        found = true;
         break;
       }
     }
+    return found;
   }
 
 } // namespace ElCalculator::gui

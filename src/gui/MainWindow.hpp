@@ -7,6 +7,7 @@
 
 #include <gui/Interrogation.hpp>
 #include <gui/PreviousResult.hpp>
+#include "InventoryWidget.hpp"
 #include "data/Difficulty.hpp"
 
 #include <QGridLayout>
@@ -46,6 +47,7 @@ namespace ElCalculator::gui
   private:
     services::QuizEngine *mQuizEngine = nullptr;
     QGridLayout *mMainLayout = nullptr;
+    InventoryWidget *mInventoryPanel = nullptr;
     QLabel *mDifficultyLabel = nullptr;
     std::pair<int, int> mInterrogationPosition;
     Interrogation *mInterrogation = nullptr;
