@@ -36,7 +36,8 @@ int main(int argc, char *argv[])
   std::vector<ElCalculator::data::GameSession> loadedHistory =
       ElCalculator::services::GameHistoryRepository::loadHistory(historyFile);
   quizEngine.setHistory(loadedHistory);
-  // quizEngine.getInventory().addItem(ElCalculator::data::ItemType::DeleteAnswer, 99);
+  
+  quizEngine.getInventory().addItem(ElCalculator::data::ItemType::DeleteAnswer, 99);
 
   // Injecter le service de quiz dans la fenêtre
   ElCalculator::gui::MainWindow fenetre(&quizEngine);

@@ -44,6 +44,7 @@ namespace ElCalculator::services
         const std::vector<data::GameSession> &getHistory() const { return mHistory; }
         std::vector<data::GameSession> &getHistoryNonConst() { return mHistory; }
         void setHistory(const std::vector<data::GameSession> &history);
+        bool isBossActive() const { return mBossActive; }
 
     signals:
         void inventoryUpdated(data::Inventory *inventory);      // Signal émis lorsque l'inventaire est mis à jour
@@ -51,6 +52,9 @@ namespace ElCalculator::services
         void sessionEnded(data::GameSession finalResult);       // Signal émis à la fin d'une session de jeu
         void livesChanged(int remainingLives);
         void gameOver(data::GameSession finalResult);
+        void bossStarted();
+        void bossProgressChanged(int current, int target);
+        void bossEnded(bool won);
 
     private:
         void lootItem(); // Fonction qui va attribuer aléatoirement un item
@@ -67,5 +71,9 @@ namespace ElCalculator::services
         int mMaxLives = 5;
         std::unique_ptr<ILifePolicy> mLifePolicy;
         bool mSessionSaved = false;
+        // Etat du boss
+        bool mBossActive = false;
+        int mBossCorrectStreak = 0;
+        int mNextBossThreshold = 5; // Déclenchement toutes les 5s bonnes réponses
     };
 } // namespace ElCalculator::services

@@ -70,6 +70,11 @@ namespace ElCalculator::services
         mStreak = 0;
         mSessionSaved = false; // Reset du flag de sauvegarde
 
+        // Reset de l'état Boss pour la nouvelle partie
+        mBossActive = false;
+        mBossCorrectStreak = 0;
+        mNextBossThreshold = 5;
+
         data::GameSession session;
         session.startedAt = std::chrono::system_clock::now();
         session.initialLives = mLives;
@@ -223,11 +228,59 @@ namespace ElCalculator::services
             return data::Result(data::Result::Status::Failure, "GAME OVER : Vous n'avez plus de vies !");
         }
 
+        // Logique boss fight
+        if (mBossActive)
+        {
+            if (isCorrect)
+            {
+                mBossCorrectStreak++;
+                emit bossProgressChanged(mBossCorrectStreak, 3);
+
+                if (mBossCorrectStreak == 3)
+                {
+                    // Victoire du Boss
+                    mBossActive = false;
+                    mNextBossThreshold += 5;
+                    if (mCurrentSession)
+                        mCurrentSession->bossFightsWon++;
+
+                    // Gain garanti d'un Skip
+                    mInventory.addItem(data::ItemType::Skip, 1);
+                    emit inventoryUpdated(&mInventory);
+
+                    emit bossEnded(true);
+                    return data::Result(data::Result::Status::Success, "BOSS VAINCU ! Vous gagnez un Skip.");
+                }
+                return data::Result(data::Result::Status::Success, "Correct ! Encore " + std::to_string(3 - mBossCorrectStreak));
+            }
+            else
+            {
+                // Erreur pendant le boss : reset de la série boss
+                mBossCorrectStreak = 0;
+                emit bossProgressChanged(0, 3);
+                return data::Result(data::Result::Status::Failure, "Raté ! Le boss résiste, la série repart à zéro.");
+            }
+        }
+
+        // Logique mode classique question + réponse
         if (isCorrect)
         {
             mStreak++;
             updateDifficulty();
             lootItem();
+
+            // Vérifie si on atteint le seuil pour déclencher un boss fight
+            if (mCurrentSession && mCurrentSession->correctAnswers >= mNextBossThreshold)
+            {
+                mBossActive = true;
+                mBossCorrectStreak = 0;
+                if (mCurrentSession) mCurrentSession->bossFightsStarted++;
+                
+                emit bossStarted();
+                
+                return data::Result(data::Result::Status::Success, "Bonne réponse... MAIS UN BOSS APPARAÎT !");
+            }
+
             return data::Result(data::Result::Status::Success, "Bonne réponse !");
         }
         else
@@ -254,6 +307,12 @@ namespace ElCalculator::services
 
     bool QuizEngine::useItem(data::ItemType type)
     {
+
+        if (mBossActive)
+        {
+            return false;
+        }
+
         if (mInventory.getItemCount(type) > 0)
         {
             // On réduit le stock et on notifie.
