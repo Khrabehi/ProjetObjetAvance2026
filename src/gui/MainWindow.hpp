@@ -54,8 +54,9 @@ namespace ElCalculator::gui
     Interrogation *mInterrogation = nullptr;
     std::pair<int, int> mPreviousResultPosition;
     PreviousResult *mPreviousResult = nullptr;
-    ScorePanel* mScorePanel = nullptr;
+    ScorePanel *mScorePanel = nullptr;
     QLabel *mLivesLabel = nullptr;
+    QLabel *mBossLabel = nullptr;
 
   protected:
     void closeEvent(QCloseEvent *event) override;

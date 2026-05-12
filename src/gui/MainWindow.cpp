@@ -189,9 +189,33 @@ namespace ElCalculator::gui
               mLivesLabel->hide();
               btnDemarrer->show();
               stopButton->setText("Quitter");
+              mBossLabel->hide();
+              mInventoryPanel->setEnabled(true);
             });
 
     mMainLayout->addLayout(topBar, 0, 0);
+
+    mBossLabel = new QLabel("COMBAT DE BOSS (0/3)", this);
+    mBossLabel->setAlignment(Qt::AlignCenter);
+    mBossLabel->setStyleSheet("font-weight: bold; color: white; background-color: #c0392b; padding: 8px; font-size: 16px; border-radius: 5px;");
+    mBossLabel->hide();
+    mMainLayout->addWidget(mBossLabel, 1, 0);
+
+    connect(mQuizEngine, &services::QuizEngine::bossStarted, this, [this]()
+            {
+              mBossLabel->setText("COMBAT DE BOSS (0/3)");
+              mBossLabel->show();
+              mInventoryPanel->setEnabled(false); // Désactive l'inventaire pendant le combat de boss
+            });
+
+    connect(mQuizEngine, &services::QuizEngine::bossProgressChanged, this, [this](int current, int target)
+            { mBossLabel->setText(QString("COMBAT DE BOSS (%1/%2)").arg(current).arg(target)); });
+
+    connect(mQuizEngine, &services::QuizEngine::bossEnded, this, [this](bool won)
+            {
+              mBossLabel->hide();
+              mInventoryPanel->setEnabled(true); // Réactive l'inventaire après le boss
+            });
 
     // This row is reserved for the previous result widget
     // The next one should be added at the mPreviousResultPosition.first + 1
@@ -213,9 +237,12 @@ namespace ElCalculator::gui
     if (mInterrogation)
     {
       mMainLayout->removeWidget(mInterrogation);
-      delete mInterrogation;
+      mInterrogation->deleteLater();
     }
-    mInterrogation = new Interrogation(interrogation, mQuizEngine->getDerniereBonneReponse());
+
+    bool isBossFight = mQuizEngine->isBossActive();
+    mInterrogation = new Interrogation(interrogation, mQuizEngine->getDerniereBonneReponse(), isBossFight);
+
     connect(mInterrogation, &Interrogation::responseSelected, this,
             &MainWindow::responseSelected);
     mMainLayout->addWidget(mInterrogation, mInterrogationPosition.first,
@@ -233,7 +260,7 @@ namespace ElCalculator::gui
     if (mPreviousResult)
     {
       mMainLayout->removeWidget(mPreviousResult);
-      delete mPreviousResult;
+      mPreviousResult->deleteLater();
     }
     mPreviousResult = new PreviousResult(result);
     mMainLayout->addWidget(mPreviousResult, mPreviousResultPosition.first,

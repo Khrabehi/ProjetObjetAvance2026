@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QLineEdit>
 
 #include <data/Interrogation.hpp>
 
@@ -20,8 +21,9 @@ namespace ElCalculator::gui
 
   public:
     explicit Interrogation(const data::Interrogation &data,
-                 const data::Response &correctResponse,
-                 QWidget *parent = nullptr);
+                           const data::Response &correctResponse,
+                           bool isBossFight = false,
+                           QWidget *parent = nullptr);
     void displayHint(const QString &texteIndice);
     bool hideWrongAnswer();
     bool canHideWrongAnswer() const;
@@ -34,7 +36,10 @@ namespace ElCalculator::gui
     QLabel *mHintLabel = nullptr;
     QVBoxLayout *mButtonsLayout = nullptr;
     std::vector<QPushButton *> mResponseButtons;
+    QLineEdit *mInputLineEdit = nullptr;
+    QPushButton *mSubmitButton = nullptr;
     QString mCorrectResponse;
+    bool mIsBossFight = false;
   };
 
 } // namespace ElCalculator::gui

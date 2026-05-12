@@ -8,35 +8,63 @@ namespace ElCalculator::gui
 
   Interrogation::Interrogation(const data::Interrogation &data,
                                const data::Response &correctResponse,
+                               bool isBossFight,
                                QWidget *parent)
-      : QWidget(parent), mCorrectResponse(QString::fromStdString(correctResponse))
+      : QWidget(parent), mCorrectResponse(QString::fromStdString(correctResponse)), mIsBossFight(isBossFight)
   {
     auto *layout = new QVBoxLayout(this);
 
-    // Question
+    // Questions
     mQuestionLabel = new QLabel(QString::fromStdString(data.question()), this);
     mQuestionLabel->setStyleSheet("font-weight: bold; font-size: 14px;");
     layout->addWidget(mQuestionLabel);
 
-    // Zone d'indice (cachée par défaut)
+    // Zone d'indice
     mHintLabel = new QLabel(this);
     mHintLabel->setStyleSheet("color: #27ae60; font-style: italic;");
     mHintLabel->hide();
     layout->addWidget(mHintLabel);
 
-    // Boutons de réponses
-    for (const auto &[label, responseValue] : data.availableAnswers())
+    // Affichage en mode Boss
+    if (mIsBossFight) 
     {
-      auto *btn = new QPushButton(QString::fromStdString(label), this);
+        mInputLineEdit = new QLineEdit(this);
+        mInputLineEdit->setPlaceholderText("Tapez votre réponse ici...");
+        mInputLineEdit->setStyleSheet("padding: 8px; font-size: 14px;");
+        
+        mSubmitButton = new QPushButton("Attaquer le Boss !", this);
+        mSubmitButton->setStyleSheet("background-color: #c0392b; color: white; font-weight: bold; padding: 8px;");
 
-      // On stocke la valeur de réponse dans une propriété Qt
-      btn->setProperty("responseValue", QString::fromStdString(responseValue));
+        layout->addWidget(mInputLineEdit);
+        layout->addWidget(mSubmitButton);
 
-      connect(btn, &QPushButton::clicked, this, [this, btn]()
-              { emit responseSelected(btn->property("responseValue").toString().toStdString()); });
+        auto submitAction = [this]() {
+            QString text = mInputLineEdit->text().trimmed();
+            if (!text.isEmpty()) {
+                emit responseSelected(text.toStdString());
+            }
+        };
 
-      mResponseButtons.push_back(btn);
-      layout->addWidget(btn);
+        connect(mSubmitButton, &QPushButton::clicked, this, submitAction);
+        connect(mInputLineEdit, &QLineEdit::returnPressed, this, submitAction);
+
+        mInputLineEdit->setFocus();
+    } 
+    // Mode normal QCM
+    else 
+    {
+        for (const auto &[label, responseValue] : data.availableAnswers())
+        {
+          auto *btn = new QPushButton(QString::fromStdString(label), this);
+
+          btn->setProperty("responseValue", QString::fromStdString(responseValue));
+
+          connect(btn, &QPushButton::clicked, this, [this, btn]()
+                  { emit responseSelected(btn->property("responseValue").toString().toStdString()); });
+
+          mResponseButtons.push_back(btn);
+          layout->addWidget(btn);
+        }
     }
   }
 
@@ -52,6 +80,9 @@ namespace ElCalculator::gui
   // Fonction qui cache une mauvaise réponse lorsque le bonus est utilisé
   bool Interrogation::hideWrongAnswer()
   {
+
+    if (mIsBossFight) return false;
+
     std::vector<QPushButton *> wrongButtons;
     for (auto *btn : mResponseButtons)
     {
@@ -83,6 +114,9 @@ namespace ElCalculator::gui
   // Fonction qui vérifie si on peut utiliser le bonus 50/50 (s'il reste au moins une mauvaise réponse visible)
   bool Interrogation::canHideWrongAnswer() const
   {
+
+    if (mIsBossFight) return false;
+
     bool found = false;
     for (auto *btn : mResponseButtons)
     {

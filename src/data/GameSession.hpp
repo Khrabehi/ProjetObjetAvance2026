@@ -30,6 +30,11 @@ namespace ElCalculator::data
         int livesLost = 0;
         int livesGained = 0;
 
+        // Suivi des combats de boss 
+        int bossFightsStarted = 0;
+        int bossFightsWon = 0;
+        int bossFightsLost = 0;
+
         bool endedWithoutSave = true;
 
         // Résultat
