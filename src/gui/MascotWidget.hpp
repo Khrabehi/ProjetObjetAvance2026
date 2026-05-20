@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QPixmap>
 
 namespace ElCalculator::gui
 {

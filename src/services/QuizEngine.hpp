@@ -55,6 +55,8 @@ namespace ElCalculator::services
         void bossStarted();
         void bossProgressChanged(int current, int target);
         void bossEnded(bool won);
+        void gameStarted();
+        void bossAboutToStart(int bossIndex);
 
     private:
         void lootItem(); // Fonction qui va attribuer aléatoirement un item

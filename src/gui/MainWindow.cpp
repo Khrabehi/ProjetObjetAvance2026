@@ -43,6 +43,25 @@ namespace ElCalculator::gui
     mMainLayout->addWidget(mScorePanel, 0, 2, 4, 1);
     mScorePanel->updateScores();
 
+    mMascotController = new services::MascotController();
+    mMascotWidget = new MascotWidget(this);
+    mMascotWidget->hide(); // Caché par défaut avant le début du jeu
+
+    mMainLayout->addWidget(mMascotWidget, 4, 2, 1, 1);
+
+    mToggleMascotBtn = new QPushButton("🤖 Masquer Mascotte", this);
+    mToggleMascotBtn->setCheckable(true);
+    connect(mToggleMascotBtn, &QPushButton::toggled, this, [this](bool checked)
+            {
+        mShowMascot = !checked; // Si le bouton est coché, on masque
+        mToggleMascotBtn->setText(mShowMascot ? "🤖 Masquer Mascotte" : "🤖 Afficher Mascotte");
+        
+        if (!mShowMascot) {
+            mMascotWidget->hide();
+        } else if (mDifficultyLabel->isVisible()) { 
+            mMascotWidget->show();
+        } });
+
     connect(mQuizEngine, &services::QuizEngine::sessionEnded, mScorePanel, &ScorePanel::updateScores);
 
     connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
@@ -160,6 +179,7 @@ namespace ElCalculator::gui
               mLivesLabel->show();
               stopButton->setText("Terminer la partie");
             });
+    topBar->addWidget(mToggleMascotBtn, 0, Qt::AlignLeft);
     topBar->addWidget(btnDemarrer, 0, Qt::AlignRight);
     topBar->addWidget(stopButton, 0, Qt::AlignRight);
 
@@ -216,6 +236,31 @@ namespace ElCalculator::gui
               mBossLabel->hide();
               mInventoryPanel->setEnabled(true); // Réactive l'inventaire après le boss
             });
+
+
+    // Signal début de partie pour le premier dialogue de la mascotte
+    connect(mQuizEngine, &services::QuizEngine::gameStarted, this, [this]()
+            {
+        if (mShowMascot) {
+            mMascotWidget->setDialogue(mMascotController->getStartOfGameMessage());
+            mMascotWidget->show();
+        } });
+
+    // Signal avant un combat de boss pour un dialogue d'introduction
+    connect(mQuizEngine, &services::QuizEngine::bossAboutToStart, this, [this](int bossIndex)
+            {
+        if (mShowMascot) {
+            mMascotWidget->setDialogue(mMascotController->getPreBossMessage(bossIndex));
+            mMascotWidget->show();
+        } });
+
+    // Signal après un combat de boss pour un dialogue de conclusion
+    connect(mQuizEngine, &services::QuizEngine::bossEnded, this, [this](bool won)
+            {
+        if (mShowMascot) {
+            mMascotWidget->setDialogue(mMascotController->getPostBossMessage(won));
+            mMascotWidget->show();
+        } });
 
     // This row is reserved for the previous result widget
     // The next one should be added at the mPreviousResultPosition.first + 1

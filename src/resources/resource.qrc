@@ -6,5 +6,6 @@
         <file>sprites/hint.png</file>
         <file>sprites/solve.png</file>
         <file>sprites/skip.png</file>
+        <file>socrate.JPEG</file>
     </qresource>
 </RCC>

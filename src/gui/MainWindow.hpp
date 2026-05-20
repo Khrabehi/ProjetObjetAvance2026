@@ -11,6 +11,9 @@
 #include "data/Difficulty.hpp"
 #include "ScorePanel.hpp"
 
+#include <gui/MascotWidget.hpp>
+#include "services/MascotController.hpp"
+
 #include <QGridLayout>
 #include <QLabel>
 
@@ -57,6 +60,10 @@ namespace ElCalculator::gui
     ScorePanel *mScorePanel = nullptr;
     QLabel *mLivesLabel = nullptr;
     QLabel *mBossLabel = nullptr;
+    MascotWidget *mMascotWidget = nullptr;
+    services::MascotController *mMascotController = nullptr;
+    QPushButton *mToggleMascotBtn = nullptr;
+    bool mShowMascot = true; 
 
   protected:
     void closeEvent(QCloseEvent *event) override;
