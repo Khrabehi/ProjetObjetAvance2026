@@ -1,5 +1,6 @@
 #include "MascotWidget.hpp"
 #include <QHBoxLayout>
+#include <QSizePolicy>
 
 namespace ElCalculator::gui
 {
@@ -59,6 +60,8 @@ namespace ElCalculator::gui
 
         mDialogueBubble = new QLabel("...", this);
         mDialogueBubble->setWordWrap(true);
+        mDialogueBubble->setMinimumWidth(240);
+        mDialogueBubble->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
         mDialogueBubble->setStyleSheet(
             "background-color: #ffffff; "
             "border: 1px solid #dcdde1; "

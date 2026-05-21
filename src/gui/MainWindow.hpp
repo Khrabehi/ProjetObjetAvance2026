@@ -14,8 +14,8 @@
 #include <gui/MascotWidget.hpp>
 #include "services/MascotController.hpp"
 
-#include <QGridLayout>
 #include <QLabel>
+#include <QVBoxLayout>
 
 #include <string>
 #include <vector>
@@ -50,12 +50,11 @@ namespace ElCalculator::gui
 
   private:
     services::QuizEngine *mQuizEngine = nullptr;
-    QGridLayout *mMainLayout = nullptr;
+    QGridLayout *mMainLayout = nullptr; // Legacy, no longer used
+    QVBoxLayout *mGameContentLayout = nullptr; // For dynamic question/result widgets
     InventoryWidget *mInventoryPanel = nullptr;
     QLabel *mDifficultyLabel = nullptr;
-    std::pair<int, int> mInterrogationPosition;
     Interrogation *mInterrogation = nullptr;
-    std::pair<int, int> mPreviousResultPosition;
     PreviousResult *mPreviousResult = nullptr;
     ScorePanel *mScorePanel = nullptr;
     QLabel *mLivesLabel = nullptr;

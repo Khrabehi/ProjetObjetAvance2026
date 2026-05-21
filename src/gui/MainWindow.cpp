@@ -16,7 +16,10 @@
 #include <stdexcept>
 
 #include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QScrollArea>
 #include <QPushButton>
+#include <QSizePolicy>
 #include <random>
 #include <cctype>
 namespace ElCalculator::gui
@@ -31,24 +34,45 @@ namespace ElCalculator::gui
       throw std::invalid_argument("Erreur : MainWindow a reçu un QuizEngine nul.");
     }
 
-    mMainLayout = new QGridLayout();
-    mMainLayout->setContentsMargins(16, 16, 16, 16);
-    mMainLayout->setHorizontalSpacing(12);
-    mMainLayout->setVerticalSpacing(12);
+    // ------------------BOSS LABEL------------------
+    mBossLabel = new QLabel("COMBAT DE BOSS (0/3)", this);
+    mBossLabel->setAlignment(Qt::AlignCenter);
+    mBossLabel->setStyleSheet("font-weight: bold; color: white; background-color: #c0392b; padding: 8px; font-size: 16px; border-radius: 5px;");
+    mBossLabel->hide();
 
+    // ------------------CONTENU PRINCIPAL------------------
+    auto *contentWidget = new QWidget(this);
+    mGameContentLayout = new QVBoxLayout(contentWidget);
+    mGameContentLayout->setSpacing(8);
+    mGameContentLayout->addStretch();
+
+    // ------------------PANEL PRINCIPAL------------------
+    auto *centralWidget = new QWidget(this);
+    auto *rootLayout = new QVBoxLayout(centralWidget);
+    rootLayout->setContentsMargins(16, 16, 16, 16);
+    rootLayout->setSpacing(12);
+
+    //-------------------INVENTAIRE------------------
     mInventoryPanel = new InventoryWidget();
     mInventoryPanel->hide();
+    mInventoryPanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
+    // ------------------SCORE PANEL------------------
     mScorePanel = new ScorePanel(mQuizEngine, this);
-    mMainLayout->addWidget(mScorePanel, 0, 2, 4, 1);
+    mScorePanel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    mScorePanel->setMinimumWidth(340);
+    mScorePanel->setMaximumWidth(420);
     mScorePanel->updateScores();
 
+    // ------------------MASCOT------------------
     mMascotController = new services::MascotController();
     mMascotWidget = new MascotWidget(this);
-    mMascotWidget->hide(); // Caché par défaut avant le début du jeu
+    mMascotWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    mMascotWidget->setMinimumWidth(340);
+    mMascotWidget->setMaximumWidth(420);
+    mMascotWidget->hide();
 
-    mMainLayout->addWidget(mMascotWidget, 4, 2, 1, 1);
-
+    //------------------TOP BAR------------------
     mToggleMascotBtn = new QPushButton("Masquer Mascotte", this);
     mToggleMascotBtn->setCheckable(true);
     connect(mToggleMascotBtn, &QPushButton::toggled, this, [this](bool checked)
@@ -67,18 +91,20 @@ namespace ElCalculator::gui
     connect(mQuizEngine, &services::QuizEngine::inventoryUpdated,
             mInventoryPanel, &InventoryWidget::updateInventory);
 
-    // Init label pour la difficulté
     mDifficultyLabel = new QLabel("Niveau : Facile", this);
     mDifficultyLabel->setAlignment(Qt::AlignCenter);
     mDifficultyLabel->setStyleSheet("font-weight: bold; color: #2980b9; font-size: 14px;");
     mDifficultyLabel->hide(); // On le cache tant que le quiz n'a pas démarré
 
+    //-------------------LIVES LABEL------------------
     mLivesLabel = new QLabel("❤️ Vies : -", this);
     mLivesLabel->setAlignment(Qt::AlignCenter);
     mLivesLabel->setStyleSheet("font-weight: bold; color: #e74c3c; font-size: 14px;");
     mLivesLabel->hide(); // Caché avant le début du quiz
 
-    auto *topBar = new QHBoxLayout();
+    // Top bar layout
+    auto *topBarWidget = new QWidget(this);
+    auto *topBar = new QHBoxLayout(topBarWidget);
     topBar->setContentsMargins(0, 0, 0, 0);
     topBar->setSpacing(12);
     topBar->addWidget(mInventoryPanel, 1);
@@ -213,27 +239,52 @@ namespace ElCalculator::gui
               mInventoryPanel->setEnabled(true);
             });
 
-    mMainLayout->addLayout(topBar, 0, 0);
+    auto *scrollArea = new QScrollArea(this);
+    scrollArea->setWidget(contentWidget);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setStyleSheet("QScrollArea { border: none; }");
 
-    mBossLabel = new QLabel("COMBAT DE BOSS (0/3)", this);
-    mBossLabel->setAlignment(Qt::AlignCenter);
-    mBossLabel->setStyleSheet("font-weight: bold; color: white; background-color: #c0392b; padding: 8px; font-size: 16px; border-radius: 5px;");
-    mBossLabel->hide();
-    mMainLayout->addWidget(mBossLabel, 1, 0);
+    auto *leftPanelWidget = new QWidget(this);
+    auto *leftPanelLayout = new QVBoxLayout(leftPanelWidget);
+    leftPanelLayout->setSpacing(12);
+    leftPanelLayout->addWidget(topBarWidget);
+    leftPanelLayout->addWidget(mBossLabel);
+    leftPanelLayout->addWidget(scrollArea, 1);
 
-    connect(mQuizEngine, &services::QuizEngine::bossStarted, this, [this]()
+    auto *rightPanelWidget = new QWidget(this);
+    auto *rightPanelLayout = new QVBoxLayout(rightPanelWidget);
+    rightPanelLayout->setSpacing(12);
+    rightPanelLayout->addWidget(mScorePanel);
+    rightPanelLayout->addWidget(mMascotWidget);
+    rightPanelLayout->addStretch();
+
+    auto *bodyWidget = new QWidget(this);
+    auto *bodyLayout = new QHBoxLayout(bodyWidget);
+    bodyLayout->setSpacing(12);
+    bodyLayout->addWidget(leftPanelWidget, 5);
+    bodyLayout->addWidget(rightPanelWidget, 2);
+
+    rootLayout->addWidget(bodyWidget, 1);
+
+    setMinimumSize(1300, 600);
+
+    connect(mQuizEngine, &services::QuizEngine::bossStarted, this, [this, scrollArea]()
             {
               mBossLabel->setText("COMBAT DE BOSS (0/3)");
               mBossLabel->show();
+              scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
               mInventoryPanel->setEnabled(false); // Désactive l'inventaire pendant le combat de boss
             });
 
     connect(mQuizEngine, &services::QuizEngine::bossProgressChanged, this, [this](int current, int target)
             { mBossLabel->setText(QString("COMBAT DE BOSS (%1/%2)").arg(current).arg(target)); });
 
-    connect(mQuizEngine, &services::QuizEngine::bossEnded, this, [this](bool won)
+    connect(mQuizEngine, &services::QuizEngine::bossEnded, this, [this, scrollArea](bool won)
             {
               mBossLabel->hide();
+              scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
               mInventoryPanel->setEnabled(true); // Réactive l'inventaire après le boss
             });
 
@@ -262,16 +313,6 @@ namespace ElCalculator::gui
             mMascotWidget->show();
         } });
 
-    // This row is reserved for the previous result widget
-    // The next one should be added at the mPreviousResultPosition.first + 1
-    mPreviousResultPosition = {mMainLayout->rowCount(), 0};
-
-    // This row is reserved for the interrogation widget
-    // The next one should be added at the mInterrogationPosition.first + 1
-    mInterrogationPosition = {mPreviousResultPosition.first + 1, 0};
-
-    auto *centralWidget = new QWidget();
-    centralWidget->setLayout(mMainLayout);
     setCentralWidget(centralWidget);
 
     mInventoryPanel->updateInventory(&mQuizEngine->getInventory());
@@ -281,7 +322,7 @@ namespace ElCalculator::gui
   {
     if (mInterrogation)
     {
-      mMainLayout->removeWidget(mInterrogation);
+      mGameContentLayout->removeWidget(mInterrogation);
       mInterrogation->deleteLater();
     }
 
@@ -290,8 +331,9 @@ namespace ElCalculator::gui
 
     connect(mInterrogation, &Interrogation::responseSelected, this,
             &MainWindow::responseSelected);
-    mMainLayout->addWidget(mInterrogation, mInterrogationPosition.first,
-                           mInterrogationPosition.second);
+    mInterrogation->setMinimumHeight(200);
+
+    mGameContentLayout->insertWidget(0, mInterrogation);
 
     // Après avoir changé d'interrogation, on vérifie si le bonus 50/50 peut être utilisé
     if (mInventoryPanel)
@@ -304,12 +346,11 @@ namespace ElCalculator::gui
   {
     if (mPreviousResult)
     {
-      mMainLayout->removeWidget(mPreviousResult);
+      mGameContentLayout->removeWidget(mPreviousResult);
       mPreviousResult->deleteLater();
     }
     mPreviousResult = new PreviousResult(result);
-    mMainLayout->addWidget(mPreviousResult, mPreviousResultPosition.first,
-                           mPreviousResultPosition.second);
+    mGameContentLayout->insertWidget(1, mPreviousResult);
   }
 
   void ElCalculator::gui::MainWindow::closeEvent(QCloseEvent *event)
