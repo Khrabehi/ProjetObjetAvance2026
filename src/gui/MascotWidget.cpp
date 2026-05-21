@@ -22,10 +22,6 @@ namespace ElCalculator::gui
         {
             mMascotAvatar->setPixmap(mascotImg.scaled(50, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         }
-        else
-        {
-            mMascotAvatar->setText("🤖");
-        }
         mMascotAvatar->setStyleSheet(
             "font-size: 32px; "
             "background-color: #e8f4f8; "
@@ -40,7 +36,7 @@ namespace ElCalculator::gui
         rightLayout->setSpacing(4);
 
         auto *topLayout = new QHBoxLayout();
-        auto *titleLabel = new QLabel("<b>Mathy, ton Compagnon</b>", this);
+        auto *titleLabel = new QLabel("<b>Socrate, le Chat</b>", this);
         titleLabel->setStyleSheet("color: #7f8c8d; font-size: 11px;");
 
         mHideButton = new QPushButton("×", this);

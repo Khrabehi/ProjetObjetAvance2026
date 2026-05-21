@@ -3,7 +3,7 @@ add_library( base )
 
 target_sources( base
   PRIVATE
-    gui/MainWindow.cpp gui/Interrogation.cpp gui/PreviousResult.cpp gui/InventoryWidget.cpp gui/MascotWidget.cpp
+    gui/MainWindow.cpp gui/Interrogation.cpp gui/PreviousResult.cpp gui/InventoryWidget.cpp gui/MascotWidget.cpp gui/MascotWidget.hpp
 )
 target_sources( base
   PRIVATE
@@ -32,7 +32,6 @@ add_executable( ${PROJECT_NAME}
                 gui/ScorePanel.cpp
                 services/ILifePolicy.hpp
                 services/StreakLifePolicy.hpp
-                services/MascotController.cpp
-                gui/MascotWidget.hpp )
+                services/MascotController.cpp )
 
 target_link_libraries( ${PROJECT_NAME} PRIVATE base Qt6::Widgets Qt6::Core )

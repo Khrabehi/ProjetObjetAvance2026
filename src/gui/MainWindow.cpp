@@ -49,12 +49,12 @@ namespace ElCalculator::gui
 
     mMainLayout->addWidget(mMascotWidget, 4, 2, 1, 1);
 
-    mToggleMascotBtn = new QPushButton("🤖 Masquer Mascotte", this);
+    mToggleMascotBtn = new QPushButton("Masquer Mascotte", this);
     mToggleMascotBtn->setCheckable(true);
     connect(mToggleMascotBtn, &QPushButton::toggled, this, [this](bool checked)
             {
         mShowMascot = !checked; // Si le bouton est coché, on masque
-        mToggleMascotBtn->setText(mShowMascot ? "🤖 Masquer Mascotte" : "🤖 Afficher Mascotte");
+        mToggleMascotBtn->setText(mShowMascot ? "Masquer Mascotte" : "Afficher Mascotte");
         
         if (!mShowMascot) {
             mMascotWidget->hide();
