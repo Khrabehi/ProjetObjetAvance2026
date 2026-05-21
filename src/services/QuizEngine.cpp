@@ -83,6 +83,8 @@ namespace ElCalculator::services
         mCurrentSession = session;
 
         emit livesChanged(mLives);
+
+        emit gameStarted();
     }
 
     void QuizEngine::endCurrentSession(data::GameStatus status)
@@ -274,8 +276,11 @@ namespace ElCalculator::services
             {
                 mBossActive = true;
                 mBossCorrectStreak = 0;
-                if (mCurrentSession) mCurrentSession->bossFightsStarted++;
+
+                int currentBossIndex = mCurrentSession->bossFightsStarted + 1;
+                mCurrentSession->bossFightsStarted++;
                 
+                emit bossAboutToStart(currentBossIndex);
                 emit bossStarted();
                 
                 return data::Result(data::Result::Status::Success, "Bonne réponse... MAIS UN BOSS APPARAÎT !");
