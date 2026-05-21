@@ -15,6 +15,30 @@ Mais dans tous les cas, je souhaite disposer d'un README pour m'indiquer :
 * Quelles sont les différentes fonctionnalités implémentées.
 * Où trouver les différents composants de votre code.
 
+## Lancer le projet
+
+Le projet est configuré avec CMake. Après la génération des fichiers de build, vous pouvez lancer l'exécutable depuis la ligne de commande.
+
+### Sous Linux
+
+Depuis la racine du projet :
+
+```bash
+cmake -S . -B build
+cmake --build build
+./build/bin/Debug/ElCalculator
+```
+
+### Sous Windows
+
+Depuis un terminal PowerShell ou l'invite de commande :
+
+```powershell
+cmake -S . -B build
+cmake --build build --config Debug
+./build/bin/Debug/ElCalculator.exe
+```
+
 Pour rappel, il n'y a aucune obligation d'inclure dans le projet un maximum de design patterns.
 Si vous souhaitez en utiliser car cela vous semble pertinent, c'est très bien. Mais ce n'est pas une obligation et l'utilisation à mauvais escient d'un design pattern simplement pour utiliser un design pattern sera pénalisante.
 
